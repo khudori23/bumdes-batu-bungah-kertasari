@@ -67,6 +67,12 @@
             @endif
 
             @if ($u->isAdmin() || $u->isManager())
+                <a href="{{ route('produk.index') }}">Produk</a>
+            @endif
+            @if ($u->canView('kasir'))
+                <a href="{{ route('pelanggan.index') }}">Pelanggan</a>
+            @endif
+            @if ($u->canView('pengeluaran'))
                 <a href="{{ route('pengeluaran.index') }}">Pengeluaran</a>
             @endif
             @if ($u->isAdmin())

@@ -94,6 +94,12 @@
                 <input type="text" name="customer_name" id="pelanggan" value="{{ old('customer_name') }}" placeholder="Pelanggan (wajib untuk hutang) — ketik nama…">
                 <div class="saran" id="saran" style="display:none"></div>
             </div>
+            @if (auth()->user()->canWrite('kasir'))
+            <div style="margin-top:.35rem;font-size:.82rem">
+                <a href="{{ route('pelanggan.index') }}" target="_blank" rel="noopener">+ Pelanggan baru (lengkap dengan telepon &amp; alamat)</a>
+                <div style="color:#64748b">Nama baru yang diketik di kolom ini juga otomatis jadi pelanggan saat nota disimpan.</div>
+            </div>
+            @endif
             <div class="hutang-info" id="info-hutang" style="display:none"></div>
 
             <div id="cart"></div>

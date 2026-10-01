@@ -32,6 +32,7 @@ class User extends Authenticatable
         'produksi_input' => [self::ROLE_PENGAWAS],                    // input hasil produksi (kg)
         'opname_hasil'   => [self::ROLE_PENGAWAS, self::ROLE_KASIR],  // opname stok hasil produksi
         'kasir'          => [self::ROLE_KASIR],                       // POS dan piutang
+        'pengeluaran'    => [self::ROLE_KASIR],                       // catat uang keluar
     ];
 
     /**

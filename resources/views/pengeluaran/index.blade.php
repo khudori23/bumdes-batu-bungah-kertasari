@@ -8,6 +8,9 @@
 @if ($bolehTulis)
 <div class="card">
     <h2 style="margin-top:0">Catat Pengeluaran</h2>
+    @if ($hanyaSendiri)
+        <p class="muted" style="margin-top:0">Tanggal otomatis hari ini. Daftar di bawah hanya memuat catatan Anda sendiri.</p>
+    @endif
 
     @if ($errors->any())
         <div style="background:#ffe4e6;border:1px solid #fecdd3;padding:.6rem .9rem;border-radius:8px;margin-bottom:1rem">
@@ -20,10 +23,12 @@
     <form method="POST" action="{{ route('pengeluaran.store') }}">
         @csrf
         <div class="fgrid">
+            @unless ($hanyaSendiri)
             <div>
                 <label for="expense_date">Tanggal</label>
                 <input type="date" id="expense_date" name="expense_date" value="{{ old('expense_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
             </div>
+            @endunless
             <div>
                 <label for="category">Kategori</label>
                 <select id="category" name="category" required>

@@ -75,6 +75,9 @@
             @if ($u->canView('pengeluaran'))
                 <a href="{{ route('pengeluaran.index') }}">Pengeluaran</a>
             @endif
+            @if ($u->isAdmin() || $u->isManager())
+                <a href="{{ route('laporan.index') }}">Laporan</a>
+            @endif
             @if ($u->isAdmin())
                 <a href="{{ route('pengguna.index') }}">Pengguna</a>
                 <a href="{{ route('gaji.index') }}">SDM & Gaji</a>

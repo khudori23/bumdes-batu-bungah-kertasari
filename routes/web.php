@@ -23,6 +23,7 @@ use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -116,6 +117,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit', [PelangganController::class, 'edit'])->whereUuid('id')->name('edit');
         Route::put('/{id}', [PelangganController::class, 'update'])->whereUuid('id')->name('update');
     });
+    // Laporan harian/mingguan/bulanan: ADMIN dan MANAGER (hanya lihat). Peran lain 403.
+    Route::middleware(RoleMiddleware::class)->get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     // Pengaturan web (logo, ikon, nota, warna): khusus ADMIN, dicek di controller
     Route::get('/pengaturan', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
     Route::put('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');

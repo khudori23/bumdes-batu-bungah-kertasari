@@ -1,0 +1,1777 @@
+﻿
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\resources\views\layouts\app.blade.php =====
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@yield('title', 'BUMDes Batu Bungah Kertasari')</title>
+    <style>
+        :root { --navy:#0f172a; --teal:#0d9488; --line:#e2e8f0; --bg:#f8fafc; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--navy); }
+        header { background:var(--navy); color:#fff; padding:.75rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+        header a { color:#cbd5e1; margin-right:1rem; text-decoration:none; font-size:.9rem; }
+        header form { display:inline; }
+        header button { background:none; border:1px solid #475569; color:#e2e8f0; padding:.3rem .8rem; border-radius:6px; cursor:pointer; }
+        main { max-width:960px; margin:2rem auto; padding:0 1.5rem; }
+        .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.5rem; }
+        .ok { background:#ccfbf1; border:1px solid #99f6e4; padding:.6rem .9rem; border-radius:8px; margin-bottom:1rem; }
+        label { display:block; font-size:.85rem; margin:.9rem 0 .3rem; }
+        input[type=text], input[type=password], input[type=date] { width:100%; padding:.6rem .7rem; border:1px solid #cbd5e1; border-radius:8px; font-size:1rem; }
+        .err { color:#e11d48; font-size:.85rem; margin-top:.25rem; }
+        .btn { margin-top:1.2rem; background:var(--teal); color:#fff; border:0; padding:.65rem 1.2rem; border-radius:8px; font-size:1rem; cursor:pointer; display:inline-block; }
+
+        /* Kasir */
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:.5rem .6rem; border-bottom:1px solid var(--line); text-align:left; }
+        th { font-size:.8rem; color:#64748b; }
+        select, input[type=number] { padding:.5rem; border:1px solid #cbd5e1; border-radius:8px; font-size:1rem; width:100%; }
+        .right { text-align:right; }
+    </style>
+</head>
+<body>
+    <header>
+        <strong>BUMDes Batu Bungah Kertasari</strong>
+        <nav>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('kasir.create') }}">Kasir</a>
+            <a href="{{ route('kasir.index') }}">Riwayat</a>
+            <a href="{{ route('piutang.index') }}">Piutang</a>
+            <a href="{{ route('pembelian.index') }}">Pembelian</a>
+            <a href="{{ route('pemasok.index') }}">Pemasok</a>
+            <a href="{{ route('akun.password') }}">Ganti Password</a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit">Keluar ({{ auth()->user()->username }})</button>
+            </form>
+        </nav>
+    </header>
+    <main>
+        @if (session('status'))
+            <div class="ok">{{ session('status') }}</div>
+        @endif
+        @yield('content')
+    </main>
+</body>
+</html>
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\resources\views\dashboard.blade.php =====
+
+@extends('layouts.app')
+
+@section('title', 'Dashboard')
+
+@section('content')
+@php
+    use Illuminate\Support\HtmlString;
+
+    $rp  = fn ($n) => 'Rp ' . number_format($n, 0, ',', '.');
+    $rpk = function ($n) {
+        $a = abs($n);
+        if ($a >= 1e9) return number_format($n / 1e9, 1, ',', '.') . ' M';
+        if ($a >= 1e6) return number_format($n / 1e6, 1, ',', '.') . ' jt';
+        if ($a >= 1e3) return number_format($n / 1e3, 0, ',', '.') . ' rb';
+        return number_format($n, 0, ',', '.');
+    };
+    $chip = function ($cur, $prev) use ($banding) {
+        if ($prev <= 0) return new HtmlString('<span class="db-chip flat">baru</span> <span class="db-muted">belum ada data ' . e($banding) . '</span>');
+        $d = round(($cur - $prev) / $prev * 100, 1);
+        $cls = $d > 0 ? 'up' : ($d < 0 ? 'down' : 'flat');
+        $ico = $d > 0 ? 'â–²' : ($d < 0 ? 'â–¼' : 'â€¢');
+        return new HtmlString('<span class="db-chip ' . $cls . '">' . $ico . ' ' . number_format(abs($d), 1, ',', '.') . '%</span> <span class="db-muted">vs ' . e($banding) . '</span>');
+    };
+
+    $jam = (int) now()->format('H');
+    $salam = $jam < 11 ? 'Selamat pagi' : ($jam < 15 ? 'Selamat siang' : ($jam < 19 ? 'Selamat sore' : 'Selamat malam'));
+    $rentang = $from->equalTo($to)
+        ? $from->locale('id')->translatedFormat('l, d F Y')
+        : $from->locale('id')->translatedFormat('d M') . ' â€“ ' . $to->locale('id')->translatedFormat('d M Y');
+@endphp
+
+<style>
+    .db{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--teal:#0d9488;--amber:#d97706;--rose:#e11d48;color:var(--ink)}
+    .db *{box-sizing:border-box}
+    .db-muted{color:var(--muted);font-size:.78rem}
+    .db-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.1rem}
+    .db-head h2{margin:0;font-size:1.35rem;letter-spacing:-.01em}
+    .db-seg{display:inline-flex;background:#eef2f6;border-radius:10px;padding:3px;gap:2px}
+    .db-seg a{padding:.38rem .8rem;border-radius:8px;font-size:.83rem;color:#475569;text-decoration:none;font-weight:500;transition:.15s}
+    .db-seg a:hover{color:var(--ink)}
+    .db-seg a.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(15,23,42,.14)}
+    .db-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:1.05rem 1.15rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+    .db-card h3{margin:0 0 .8rem;font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+    .db-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin-bottom:.8rem}
+    .db-kpi .l{font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .db-kpi .v{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;margin:.3rem 0 .4rem;font-variant-numeric:tabular-nums}
+    .db-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:.8rem;margin-bottom:.8rem}
+    .s12{grid-column:span 12}.s8{grid-column:span 8}.s7{grid-column:span 7}.s5{grid-column:span 5}.s4{grid-column:span 4}
+    @media (max-width:900px){.db-grid>*{grid-column:span 12}}
+    .db-chip{display:inline-flex;font-size:.74rem;font-weight:600;padding:.1rem .5rem;border-radius:99px}
+    .db-chip.up{background:#ccfbf1;color:#0f766e}.db-chip.down{background:#ffe4e6;color:#be123c}
+    .db-chip.flat{background:#f1f5f9;color:#64748b}.db-chip.warn{background:#fef3c7;color:#b45309}
+    .db-table{width:100%;border-collapse:collapse;font-size:.88rem}
+    .db-table th,.db-table td{padding:.55rem .4rem;border-bottom:1px solid #eef2f6;text-align:left;background:transparent}
+    .db-table th{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+    .db-table .r{text-align:right;font-variant-numeric:tabular-nums}
+    .db-table a{color:var(--ink);text-decoration:none;font-weight:600}.db-table a:hover{color:var(--teal)}
+    .db-track{height:6px;background:#eef2f6;border-radius:99px;overflow:hidden;margin-top:.35rem}
+    .db-fill{height:100%;background:var(--teal);border-radius:99px;transform-origin:left;animation:dbgrow .7s ease-out both}
+    .db-row{margin-bottom:.85rem}.db-row:last-child{margin-bottom:0}
+    .db-row .t{display:flex;justify-content:space-between;gap:.6rem;font-size:.88rem}
+    .db-stack{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#eef2f6;margin-bottom:.9rem}
+    .db-legend{display:grid;grid-template-columns:1fr 1fr;gap:.55rem .9rem;font-size:.82rem}
+    .db-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:.4rem}
+    .db-chart{position:relative}.db-chart svg{width:100%;height:auto;display:block}
+    .db-bar{fill:var(--teal);opacity:.82;transition:opacity .15s;transform-box:fill-box;transform-origin:50% 100%;animation:dbrise .6s cubic-bezier(.2,.7,.2,1) both}
+    .db-col:hover .db-bar{opacity:1}.db-hit{fill:transparent}
+    .db-tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:.78rem;line-height:1.5;padding:.45rem .65rem;border-radius:8px;opacity:0;transition:opacity .12s;white-space:nowrap;z-index:5}
+    .db-legend-line{display:flex;gap:1rem;font-size:.78rem;color:var(--muted);margin-bottom:.4rem}
+    .db-legend-line i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.35rem}
+    @keyframes dbgrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    @keyframes dbrise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+    @media (prefers-reduced-motion:reduce){.db *{animation:none!important}}
+</style>
+
+<div class="db">
+    <div class="db-head">
+        <div>
+            <h2>{{ $salam }}, {{ auth()->user()->name }}</h2>
+            <div class="db-muted" style="font-size:.88rem;margin-top:.2rem">{{ $rentang }}</div>
+        </div>
+        @if ($manajemen)
+            <div class="db-seg">
+                @foreach ($periodeList as $key => $label)
+                    <a href="{{ route('dashboard', ['periode' => $key]) }}" class="{{ $periode === $key ? 'on' : '' }}">{{ $label }}</a>
+                @endforeach
+            </div>
+        @else
+            <a class="btn" style="margin:0;text-decoration:none" href="{{ route('kasir.create') }}">Transaksi baru</a>
+        @endif
+    </div>
+
+    {{-- KPI --}}
+    <div class="db-kpis">
+        <div class="db-card db-kpi">
+            <div class="l">Omzet</div><div class="v">{{ $rp($now['omzet']) }}</div>
+            <div>{{ $chip($now['omzet'], $prev['omzet']) }}</div>
+        </div>
+        <div class="db-card db-kpi">
+            <div class="l">Kas masuk</div><div class="v">{{ $rp($now['kas']) }}</div>
+            <div>{{ $chip($now['kas'], $prev['kas']) }}</div>
+        </div>
+        <div class="db-card db-kpi">
+            <div class="l">Transaksi</div><div class="v">{{ number_format($now['trx'], 0, ',', '.') }}</div>
+            <div>{{ $chip($now['trx'], $prev['trx']) }}</div>
+            <div class="db-muted" style="margin-top:.25rem">Rata-rata {{ $rp($now['trx'] ? $now['omzet'] / $now['trx'] : 0) }} / nota</div>
+        </div>
+        @if ($manajemen)
+            <div class="db-card db-kpi">
+                <div class="l">Volume terjual</div><div class="v">{{ number_format($now['kg'], 1, ',', '.') }} <span style="font-size:.95rem;color:var(--muted)">kg</span></div>
+                <div>{{ $chip($now['kg'], $prev['kg']) }}</div>
+            </div>
+            <div class="db-card db-kpi">
+                <div class="l">Piutang beredar</div><div class="v">{{ $rp(array_sum($aging)) }}</div>
+                <div class="db-muted">{{ $jumlahDebitur }} pelanggan masih berhutang</div>
+            </div>
+            @php $telat = $aging['d7'] + $aging['d30'] + $aging['d30p']; @endphp
+            <div class="db-card db-kpi">
+                <div class="l">Lewat jatuh tempo</div>
+                <div class="v" style="color:{{ $telat > 0 ? 'var(--rose)' : 'inherit' }}">{{ $rp($telat) }}</div>
+                <div class="db-muted">{{ $jumlahTelat }} pelanggan{{ $tertua > 0 ? ' Â· tertua ' . $tertua . ' hari' : '' }}</div>
+            </div>
+        @endif
+    </div>
+
+    @if ($manajemen)
+        {{-- Grafik tren --}}
+        @php
+            $W = 720; $H = 250; $pl = 48; $pr = 12; $pt = 14; $pb = 28;
+            $n = count($chart);
+            $maxV = max(1, collect($chart)->max(fn ($d) => max($d['omzet'], $d['kas'])));
+            $mag = 10 ** floor(log10($maxV));
+            $top = ceil($maxV / $mag * 2) / 2 * $mag;
+            $pw = $W - $pl - $pr; $ph = $H - $pt - $pb; $slot = $pw / $n; $bw = min(34, $slot * .62);
+            $y = fn ($v) => $pt + $ph * (1 - $v / $top);
+            $every = max(1, (int) ceil($n / 10));
+            $kosong = collect($chart)->sum('omzet') + collect($chart)->sum('kas') <= 0;
+            $pts = [];
+        @endphp
+        <div class="db-grid">
+            <div class="db-card s8">
+                <h3>Tren penjualan {{ $periode === 'hari' ? '14 hari terakhir' : 'Â· ' . $periodeList[$periode] }}</h3>
+                <div class="db-legend-line">
+                    <span><i style="background:var(--teal)"></i>Omzet</span>
+                    <span><i style="background:var(--amber)"></i>Kas masuk</span>
+                </div>
+                <div class="db-chart">
+                    <div class="db-tip"></div>
+                    <svg viewBox="0 0 {{ $W }} {{ $H }}" role="img" aria-label="Grafik omzet dan kas masuk harian">
+                        @for ($g = 0; $g <= 4; $g++)
+                            @php $gv = $top * $g / 4; @endphp
+                            <line x1="{{ $pl }}" x2="{{ $W - $pr }}" y1="{{ $y($gv) }}" y2="{{ $y($gv) }}" stroke="#e2e8f0" stroke-dasharray="{{ $g ? '3 4' : '0' }}"/>
+                            <text x="{{ $pl - 8 }}" y="{{ $y($gv) + 4 }}" text-anchor="end" font-size="10.5" fill="#64748b">{{ $rpk($gv) }}</text>
+                        @endfor
+                        @foreach ($chart as $i => $d)
+                            @php
+                                $cx = $pl + $slot * ($i + .5);
+                                $pts[] = round($cx, 1) . ',' . round($y($d['kas']), 1);
+                                $tip = $d['tgl']->locale('id')->translatedFormat('D, d M');
+                            @endphp
+                            <g class="db-col" data-d="{{ $tip }}" data-o="{{ $rp($d['omzet']) }}" data-k="{{ $rp($d['kas']) }}" data-t="{{ $d['trx'] }}">
+                                <rect class="db-bar" x="{{ $cx - $bw / 2 }}" y="{{ $y($d['omzet']) }}" width="{{ $bw }}" height="{{ max(0, $pt + $ph - $y($d['omzet'])) }}" rx="3" style="animation-delay:{{ $i * 18 }}ms"/>
+                                <rect class="db-hit" x="{{ $pl + $slot * $i }}" y="{{ $pt }}" width="{{ $slot }}" height="{{ $ph }}"/>
+                            </g>
+                            @if ($i % $every === 0)
+                                <text x="{{ $cx }}" y="{{ $H - 8 }}" text-anchor="middle" font-size="10.5" fill="#64748b">{{ $d['tgl']->format('d/m') }}</text>
+                            @endif
+                        @endforeach
+                        <polyline points="{{ implode(' ', $pts) }}" fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>
+                        @foreach ($pts as $p)
+                            @php [$px, $py] = explode(',', $p); @endphp
+                            <circle cx="{{ $px }}" cy="{{ $py }}" r="2.6" fill="#fff" stroke="#d97706" stroke-width="1.6" pointer-events="none"/>
+                        @endforeach
+                    </svg>
+                    @if ($kosong)
+                        <div class="db-muted" style="text-align:center;margin-top:-5.5rem;margin-bottom:4rem">Belum ada transaksi pada periode ini</div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Produk terlaris --}}
+            <div class="db-card s4">
+                <h3>Produk terlaris</h3>
+                @php $maxP = max(1, (float) ($produk->max('omzet') ?? 0)); @endphp
+                @forelse ($produk as $p)
+                    <div class="db-row">
+                        <div class="t">
+                            <span><strong>{{ $p->name }}</strong> <span class="db-muted">{{ rtrim(rtrim(number_format($p->qty, 2, ',', '.'), '0'), ',') }} {{ strtolower($p->unit) }}</span></span>
+                            <span style="font-variant-numeric:tabular-nums">{{ $rpk($p->omzet) }}</span>
+                        </div>
+                        <div class="db-track"><div class="db-fill" style="width:{{ round($p->omzet / $maxP * 100) }}%"></div></div>
+                    </div>
+                @empty
+                    <div class="db-muted">Belum ada penjualan pada periode ini.</div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Piutang --}}
+        @php
+            $tot = array_sum($aging);
+            $seg = ['belum' => ['Belum jatuh tempo', '#cbd5e1'], 'd7' => ['Telat 1â€“7 hari', '#fcd34d'], 'd30' => ['Telat 8â€“30 hari', '#d97706'], 'd30p' => ['Telat > 30 hari', '#e11d48']];
+        @endphp
+        <div class="db-grid">
+            <div class="db-card s5">
+                <h3>Umur piutang</h3>
+                @if ($tot > 0.004)
+                    <div class="db-stack">
+                        @foreach ($seg as $k => [$lab, $col])
+                            @if ($aging[$k] > 0)<div style="width:{{ $aging[$k] / $tot * 100 }}%;background:{{ $col }}" title="{{ $lab }}"></div>@endif
+                        @endforeach
+                    </div>
+                    <div class="db-legend">
+                        @foreach ($seg as $k => [$lab, $col])
+                            <div><i style="background:{{ $col }}"></i>{{ $lab }}<br><strong>{{ $rp($aging[$k]) }}</strong></div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="db-muted">Tidak ada piutang beredar.</div>
+                @endif
+
+                <h3 style="margin-top:1.3rem">Pengawasan periode ini</h3>
+                <div style="font-size:.88rem">
+                    Nota dibatalkan: <strong>{{ $batal->n }}</strong>
+                    @if ($batal->n > 0)<span class="db-muted">({{ $rp($batal->total) }})</span>@endif
+                </div>
+            </div>
+
+            <div class="db-card s7">
+                <h3>Pelanggan dengan hutang terbesar</h3>
+                <table class="db-table">
+                    <thead><tr><th>Pelanggan</th><th class="r">Nota</th><th class="r">Sisa hutang</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @forelse ($debitur as $d)
+                            <tr>
+                                <td><a href="{{ route('piutang.show', $d['id']) }}">{{ $d['nama'] }}</a></td>
+                                <td class="r">{{ $d['nota'] }}</td>
+                                <td class="r">{{ $rp($d['saldo']) }}</td>
+                                <td>
+                                    @if ($d['telat'] > 0)<span class="db-chip down">Telat {{ $d['telat'] }} hari</span>
+                                    @else<span class="db-chip flat">Berjalan</span>@endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="db-muted">Tidak ada hutang pelanggan.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    {{-- Transaksi terakhir --}}
+    <div class="db-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="margin:0">Transaksi terakhir</h3>
+            <a href="{{ route('kasir.index') }}" class="db-muted" style="text-decoration:none">Lihat semua â†’</a>
+        </div>
+        <div style="overflow-x:auto;margin-top:.5rem">
+            <table class="db-table">
+                <thead><tr><th>No. nota</th><th>Waktu</th><th>Pelanggan</th>@if ($manajemen)<th>Kasir</th>@endif<th class="r">Total</th><th>Status</th></tr></thead>
+                <tbody>
+                    @forelse ($recent as $s)
+                        @php $sisa = $s->total_amount - ($s->dibayar ?? 0); @endphp
+                        <tr style="{{ $s->is_voided ? 'color:#94a3b8' : '' }}">
+                            <td><a href="{{ route('kasir.show', $s) }}">{{ $s->sale_number }}</a></td>
+                            <td>{{ $s->created_at->timezone(config('app.timezone'))->format('d/m H:i') }}</td>
+                            <td>{{ $s->customer_name }}</td>
+                            @if ($manajemen)<td>{{ $s->cashier?->name }}</td>@endif
+                            <td class="r">{{ $rp($s->total_amount) }}</td>
+                            <td>
+                                @if ($s->is_voided)<span class="db-chip down">Batal</span>
+                                @elseif ($sisa > 0.004)<span class="db-chip warn">Hutang {{ $rp($sisa) }}</span>
+                                @else<span class="db-chip up">Lunas</span>@endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="db-muted">Belum ada transaksi.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var box = document.querySelector('.db-chart');
+    if (!box) return;
+    var tip = box.querySelector('.db-tip');
+    box.querySelectorAll('.db-col').forEach(function (g) {
+        function show(e) {
+            var r = box.getBoundingClientRect(), p = e.touches ? e.touches[0] : e;
+            tip.innerHTML = '<strong>' + g.dataset.d + '</strong><br>Omzet ' + g.dataset.o +
+                '<br>Kas masuk ' + g.dataset.k + '<br>' + g.dataset.t + ' transaksi';
+            var x = p.clientX - r.left + 14;
+            if (x + tip.offsetWidth > r.width) x = p.clientX - r.left - tip.offsetWidth - 14;
+            tip.style.left = Math.max(0, x) + 'px';
+            tip.style.top = (p.clientY - r.top - 10) + 'px';
+            tip.style.opacity = 1;
+        }
+        g.addEventListener('mousemove', show);
+        g.addEventListener('touchstart', show, { passive: true });
+        g.addEventListener('mouseleave', function () { tip.style.opacity = 0; });
+    });
+})();
+</script>
+@endsection
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Http\Controllers\DashboardController.php =====
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Sale;
+use App\Services\PiutangService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+class DashboardController extends Controller
+{
+    private const PERIODE = [
+        'hari'       => ['Hari ini', 'kemarin'],
+        'minggu'     => ['7 hari', '7 hari sebelumnya'],
+        'bulan'      => ['Bulan ini', 'periode sama bulan lalu'],
+        'bulan_lalu' => ['Bulan lalu', 'bulan sebelumnya'],
+    ];
+
+    public function index(Request $request, PiutangService $piutang)
+    {
+        $user      = Auth::user();
+        $manajemen = in_array(strtoupper((string) $user->role), ['ADMIN', 'MANAGER'], true);
+        $kasirId   = $manajemen ? null : $user->id; // kasir hanya melihat transaksinya sendiri
+
+        $periode = $manajemen ? $request->query('periode', 'bulan') : 'hari';
+        if (! isset(self::PERIODE[$periode])) {
+            $periode = 'bulan';
+        }
+
+        $today = Carbon::today();
+        [$from, $to, $pFrom, $pTo] = $this->rentang($periode, $today);
+
+        $now  = $this->ringkas($from, $to, $kasirId);
+        $prev = $this->ringkas($pFrom, $pTo, $kasirId);
+
+        $recent = Sale::with('cashier')
+            ->withSum(['payments as dibayar' => fn ($q) => $q->whereNull('voided_at')], 'amount')
+            ->when($kasirId, fn ($q) => $q->where('cashier_id', $kasirId))
+            ->latest('created_at')->limit(8)->get();
+
+        $data = [
+            'manajemen'   => $manajemen,
+            'periode'     => $periode,
+            'periodeList' => array_map(fn ($p) => $p[0], self::PERIODE),
+            'banding'     => self::PERIODE[$periode][1],
+            'from'        => $from,
+            'to'          => $to,
+            'now'         => $now,
+            'prev'        => $prev,
+            'recent'      => $recent,
+        ];
+
+        if (! $manajemen) {
+            return view('dashboard', $data);
+        }
+
+        // Tren harian (periode "hari ini" memakai 14 hari terakhir supaya grafik tetap bermakna)
+        $cFrom = $periode === 'hari' ? $today->copy()->subDays(13) : $from->copy();
+        $omzetHarian = DB::table('sales')->where('is_voided', false)
+            ->whereBetween('sale_date', [$cFrom->toDateString(), $to->toDateString()])
+            ->selectRaw('sale_date, sum(total_amount) as omzet, count(*) as trx')
+            ->groupBy('sale_date')->get()->keyBy(fn ($r) => substr((string) $r->sale_date, 0, 10));
+        $kasHarian = DB::table('payments')->whereNull('voided_at')
+            ->whereRaw($this->tglKas() . ' between ? and ?', [config('app.timezone'), $cFrom->toDateString(), $to->toDateString()])
+            ->selectRaw($this->tglKas() . ' as tgl, sum(amount) as kas', [config('app.timezone')])
+            ->groupBy('tgl')->pluck('kas', 'tgl');
+
+        $chart = [];
+        for ($d = $cFrom->copy(); $d->lte($to); $d->addDay()) {
+            $k = $d->toDateString();
+            $chart[] = [
+                'tgl'   => $d->copy(),
+                'omzet' => (float) ($omzetHarian[$k]->omzet ?? 0),
+                'trx'   => (int) ($omzetHarian[$k]->trx ?? 0),
+                'kas'   => (float) ($kasHarian[$k] ?? 0),
+            ];
+        }
+
+        $produk = DB::table('sale_items as i')
+            ->join('sales as s', 's.id', '=', 'i.sale_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->where('s.is_voided', false)
+            ->whereBetween('s.sale_date', [$from->toDateString(), $to->toDateString()])
+            ->selectRaw('p.name, upper(i.unit) as unit, sum(i.quantity) as qty, sum(i.subtotal) as omzet')
+            ->groupBy('p.id', 'p.name', 'i.unit')->orderByDesc('omzet')->limit(6)->get();
+
+        $batal = DB::table('sales')->where('is_voided', true)
+            ->whereBetween('sale_date', [$from->toDateString(), $to->toDateString()])
+            ->selectRaw('count(*) as n, coalesce(sum(total_amount),0) as total')->first();
+
+        // Umur piutang & pelanggan dengan hutang terbesar
+        $aging = ['belum' => 0.0, 'd7' => 0.0, 'd30' => 0.0, 'd30p' => 0.0];
+        $debitur = [];
+        foreach ($piutang->notaTerbukaSemua() as $n) {
+            $sisa  = (float) $n->sisa;
+            $due   = Carbon::parse($n->jatuh_tempo)->startOfDay();
+            $telat = $due->lt($today) ? (int) abs($due->diffInDays($today)) : 0;
+
+            $aging[$telat === 0 ? 'belum' : ($telat <= 7 ? 'd7' : ($telat <= 30 ? 'd30' : 'd30p'))] += $sisa;
+
+            $debitur[$n->customer_id] ??= ['id' => $n->customer_id, 'nama' => $n->customer_name, 'saldo' => 0.0, 'telat' => 0, 'nota' => 0];
+            $debitur[$n->customer_id]['saldo'] += $sisa;
+            $debitur[$n->customer_id]['nota']++;
+            $debitur[$n->customer_id]['telat'] = max($debitur[$n->customer_id]['telat'], $telat);
+        }
+        usort($debitur, fn ($a, $b) => $b['saldo'] <=> $a['saldo']);
+
+        return view('dashboard', $data + [
+            'chart'         => $chart,
+            'produk'        => $produk,
+            'batal'         => $batal,
+            'aging'         => $aging,
+            'debitur'       => array_slice($debitur, 0, 5),
+            'jumlahDebitur' => count($debitur),
+            'jumlahTelat'   => count(array_filter($debitur, fn ($d) => $d['telat'] > 0)),
+            'tertua'        => collect($debitur)->max('telat') ?? 0,
+        ]);
+    }
+
+    /** Tanggal kas dalam zona waktu aplikasi (kolom created_at bertipe timestamptz). */
+    private function tglKas(): string
+    {
+        return '(created_at at time zone ?::text)::date';
+    }
+
+    private function rentang(string $p, Carbon $today): array
+    {
+        if ($p === 'hari') {
+            return [$today->copy(), $today->copy(), $today->copy()->subDay(), $today->copy()->subDay()];
+        }
+        if ($p === 'minggu') {
+            $f = $today->copy()->subDays(6);
+            return [$f, $today->copy(), $f->copy()->subDays(7), $f->copy()->subDay()];
+        }
+        if ($p === 'bulan_lalu') {
+            $f  = $today->copy()->subMonthNoOverflow()->startOfMonth();
+            $pf = $f->copy()->subMonthNoOverflow()->startOfMonth();
+            return [$f, $f->copy()->endOfMonth()->startOfDay(), $pf, $pf->copy()->endOfMonth()->startOfDay()];
+        }
+        $f  = $today->copy()->startOfMonth();
+        $pf = $f->copy()->subMonthNoOverflow();
+        $pt = $pf->copy()->addDays($today->day - 1);
+        if ($pt->gt($pf->copy()->endOfMonth())) {
+            $pt = $pf->copy()->endOfMonth();
+        }
+        return [$f, $today->copy(), $pf, $pt->startOfDay()];
+    }
+
+    private function ringkas(Carbon $from, Carbon $to, ?string $kasirId): array
+    {
+        $f = $from->toDateString();
+        $t = $to->toDateString();
+
+        $s = DB::table('sales')->where('is_voided', false)->whereBetween('sale_date', [$f, $t])
+            ->when($kasirId, fn ($q) => $q->where('cashier_id', $kasirId))
+            ->selectRaw('coalesce(sum(total_amount),0) as omzet, count(*) as trx')->first();
+
+        $kg = DB::table('sale_items as i')->join('sales as s', 's.id', '=', 'i.sale_id')
+            ->where('s.is_voided', false)->whereBetween('s.sale_date', [$f, $t])
+            ->whereRaw("upper(i.unit) = 'KG'")
+            ->when($kasirId, fn ($q) => $q->where('s.cashier_id', $kasirId))
+            ->sum('i.quantity');
+
+        $kas = DB::table('payments')->whereNull('voided_at')
+            ->whereRaw($this->tglKas() . ' between ? and ?', [config('app.timezone'), $f, $t])
+            ->when($kasirId, fn ($q) => $q->where('cashier_id', $kasirId))
+            ->sum('amount');
+
+        return ['omzet' => (float) $s->omzet, 'trx' => (int) $s->trx, 'kg' => (float) $kg, 'kas' => (float) $kas];
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Http\Controllers\KasirController.php =====
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Customer;
+use App\Models\CustomerType;
+use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductPrice;
+use App\Models\Sale;
+use App\Services\PiutangService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+class KasirController extends Controller
+{
+    /** Kunci antar-transaksi di PostgreSQL (otomatis lepas saat transaksi selesai). */
+    private function kunci(string $kunci): void
+    {
+        DB::select('select pg_advisory_xact_lock(?)', [(int) crc32($kunci)]);
+    }
+
+    public function index()
+    {
+        $sales = Sale::with('customerType')
+            ->withSum(['payments as dibayar' => fn ($q) => $q->whereNull('voided_at')], 'amount')
+            ->latest('created_at')
+            ->limit(50)
+            ->get();
+
+        return view('kasir.index', compact('sales'));
+    }
+
+    public function create(PiutangService $piutang)
+    {
+        $types = CustomerType::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+        $defaultTypeId = $types->firstWhere('code', 'MASYARAKAT_UMUM')?->id ?? $types->first()?->id;
+
+        $products = Product::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+
+        // Susunan: $prices[customer_type_id][product_id] = harga
+        $prices = [];
+        ProductPrice::where('is_active', true)
+            ->get(['product_id', 'customer_type_id', 'price'])
+            ->each(function ($pp) use (&$prices) {
+                $prices[$pp->customer_type_id][$pp->product_id] = (float) $pp->price;
+            });
+
+        // Pelanggan + sisa hutang + keterlambatan, untuk pencarian di layar kasir
+        $ringkasan = $piutang->ringkasanSemua();
+        $customers = Customer::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'customer_type_id'])
+            ->map(fn ($c) => [
+                'id'    => $c->id,
+                'name'  => $c->name,
+                'type'  => $c->customer_type_id,
+                'saldo' => $ringkasan[$c->id]['saldo'] ?? 0,
+                'telat' => $ringkasan[$c->id]['terlambat_hari'] ?? 0,
+            ])
+            ->values();
+
+        $defaultTempo = (int) config('kasir.tempo_hari', 7);
+
+        return view('kasir.create', compact('types', 'defaultTypeId', 'products', 'prices', 'customers', 'defaultTempo'));
+    }
+
+    public function store(Request $request, PiutangService $piutang)
+    {
+        $data = $request->validate([
+            'customer_type_id'   => ['required', 'exists:customer_types,id'],
+            'customer_id'        => ['nullable', 'exists:customers,id'],
+            'customer_name'      => ['nullable', 'string', 'max:100'],
+            'items'              => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity'   => ['required', 'numeric', 'min:0.01', 'max:99999'],
+            'discount'           => ['nullable', 'numeric', 'min:0'],
+            'payment_method'     => ['required', 'in:CASH,TRANSFER,HUTANG'],
+            'amount_paid'        => ['nullable', 'numeric', 'min:0'],
+            'reference_number'   => ['nullable', 'string', 'max:100'],
+            'due_days'           => ['nullable', 'integer', 'min:0', 'max:365'],
+        ]);
+
+        // Harga selalu diambil dari database, bukan dari isian browser.
+        // Produk dan harga diambil sekali jalan, tidak per baris.
+        $productIds = collect($data['items'])->pluck('product_id')->unique()->all();
+
+        $products = Product::whereIn('id', $productIds)->where('is_active', true)->get()->keyBy('id');
+
+        $prices = ProductPrice::whereIn('product_id', $productIds)
+            ->where('customer_type_id', $data['customer_type_id'])
+            ->where('is_active', true)
+            ->pluck('price', 'product_id');
+
+        $lines = [];
+        $subtotal = 0.0;
+
+        foreach ($data['items'] as $row) {
+            $product = $products->get($row['product_id']);
+
+            if (! $product) {
+                throw ValidationException::withMessages([
+                    'items' => 'Ada produk yang sudah tidak aktif. Muat ulang halaman kasir.',
+                ]);
+            }
+
+            $price = $prices->get($product->id);
+
+            if ($price === null) {
+                throw ValidationException::withMessages([
+                    'items' => "Produk {$product->name} belum punya harga untuk jenis pelanggan ini.",
+                ]);
+            }
+
+            $qty = round((float) $row['quantity'], 2);
+            $sub = round((float) $price * $qty, 2);
+            $subtotal = round($subtotal + $sub, 2);
+
+            $lines[] = [
+                'product_id' => $product->id,
+                'quantity'   => $qty,
+                'unit'       => $product->primary_unit ?? 'KG',
+                'unit_price' => (float) $price,
+                'subtotal'   => $sub,
+            ];
+        }
+
+        $discount = round((float) ($data['discount'] ?? 0), 2);
+
+        if ($discount > $subtotal) {
+            throw ValidationException::withMessages(['discount' => 'Diskon tidak boleh melebihi subtotal.']);
+        }
+
+        $total  = round($subtotal - $discount, 2);
+        $metode = $data['payment_method'];
+        $paid   = round((float) ($data['amount_paid'] ?? 0), 2);
+        $tempo  = (int) ($data['due_days'] ?? config('kasir.tempo_hari', 7));
+
+        $nama = trim((string) ($data['customer_name'] ?? ''));
+        $adaNama = $nama !== '' && mb_strtolower($nama) !== 'umum';
+        $adaPelanggan = ! empty($data['customer_id']) || $adaNama;
+
+        if ($metode === 'HUTANG' && ! $adaPelanggan) {
+            throw ValidationException::withMessages([
+                'customer_name' => 'Hutang harus atas nama pelanggan. Isi nama pelanggan dulu.',
+            ]);
+        }
+
+        if ($metode !== 'HUTANG' && $paid < $total) {
+            throw ValidationException::withMessages([
+                'amount_paid' => 'Uang dibayar kurang dari total belanja. Pilih "Hutang" kalau pelanggan berhutang.',
+            ]);
+        }
+
+        [$sale, $kembalian, $sisaHutang] = DB::transaction(
+            function () use ($data, $lines, $subtotal, $discount, $total, $metode, $paid, $nama, $adaNama, $tempo, $piutang) {
+                $now   = now();
+                $today = $now->toDateString();
+
+                // Urutan kunci selalu: nomor nota -> nama pelanggan -> id pelanggan
+                $this->kunci('sale_number_' . $today);
+
+                // Tentukan pelanggan: dipilih dari daftar, cocok nama, atau baru
+                $customer = null;
+                if (! empty($data['customer_id'])) {
+                    $customer = Customer::findOrFail($data['customer_id']);
+                } elseif ($adaNama) {
+                    // Kunci per nama supaya dua kasir tidak membuat pelanggan kembar
+                    $this->kunci('cust_name_' . mb_strtolower($nama));
+
+                    $customer = Customer::whereRaw('lower(name) = ?', [mb_strtolower($nama)])->first()
+                        ?? Customer::create([
+                            'name'             => $nama,
+                            'customer_type_id' => $data['customer_type_id'],
+                            'is_active'        => true,
+                        ]);
+                }
+
+                // Kunci per pelanggan agar hutang tidak salah hitung kalau ada dua kasir
+                if ($customer) {
+                    $this->kunci('cust_' . $customer->id);
+                }
+
+                $hutangLama = $customer ? $piutang->saldo($customer->id) : 0.0;
+                $tagihan    = round($total + $hutangLama, 2);
+
+                if ($metode === 'TRANSFER' && $paid > $tagihan + 0.004) {
+                    throw ValidationException::withMessages([
+                        'amount_paid' => 'Transfer tidak boleh melebihi total tagihan (Rp ' . number_format($tagihan, 0, ',', '.') . ').',
+                    ]);
+                }
+
+                $dibayar = round(min($paid, $tagihan), 2);
+
+                // Nomor nota: ambil nomor terakhir hari ini lalu tambah satu
+                $prefix   = 'INV-' . $now->format('Ymd') . '-';
+                $terakhir = Sale::where('sale_number', 'like', $prefix . '%')->max('sale_number');
+                $urut     = $terakhir ? ((int) substr($terakhir, strlen($prefix))) + 1 : 1;
+                $number   = $prefix . str_pad((string) $urut, 4, '0', STR_PAD_LEFT);
+
+                $sale = Sale::create([
+                    'sale_number'      => $number,
+                    'sale_date'        => $today,
+                    'due_date'         => $customer ? $now->copy()->addDays($tempo)->toDateString() : null,
+                    'customer_id'      => $customer?->id,
+                    'customer_name'    => $customer?->name ?? 'Umum',
+                    'customer_type_id' => $data['customer_type_id'],
+                    'subtotal'         => $subtotal,
+                    'discount'         => $discount,
+                    'total_amount'     => $total,
+                    'previous_balance' => $hutangLama,
+                    'balance_after'    => 0,
+                    'status'           => 'COMPLETED',
+                    'cashier_id'       => Auth::id(),
+                ]);
+
+                foreach ($lines as $line) {
+                    $sale->items()->create($line);
+                }
+
+                // Uang yang dibayar sebagian (saat Hutang) dicatat sebagai tunai
+                $metodeBayar = $metode === 'HUTANG' ? 'CASH' : $metode;
+                $teralokasi  = 0.0;
+
+                if ($dibayar > 0) {
+                    if ($customer) {
+                        // Melunasi nota tertua dulu, lalu nota ini
+                        $teralokasi = $piutang->bayar(
+                            $customer->id,
+                            $dibayar,
+                            $metodeBayar,
+                            $data['reference_number'] ?? null,
+                            Auth::id(),
+                            $sale->id
+                        );
+                    } else {
+                        Payment::create([
+                            'sale_id'            => $sale->id,
+                            'payment_method'     => $metodeBayar,
+                            'amount'             => $dibayar,
+                            'reference_number'   => $data['reference_number'] ?? null,
+                            'cashier_id'         => Auth::id(),
+                            'settlement_sale_id' => $sale->id,
+                        ]);
+                        $teralokasi = $dibayar;
+                    }
+                }
+
+                // Kembalian dihitung dari uang yang benar-benar tercatat
+                $kembalian  = round($paid - $teralokasi, 2);
+                $sisaHutang = $customer ? $piutang->saldo($customer->id) : 0.0;
+
+                // Jatuh tempo hutang tertua yang masih tersisa, untuk dicetak di nota
+                $tertua = ($customer && $sisaHutang > 0.004)
+                    ? $piutang->notaTerbuka($customer->id)->min('jatuh_tempo')
+                    : null;
+
+                $sale->update([
+                    'balance_after'    => $sisaHutang,
+                    'balance_due_date' => $tertua,
+                ]);
+
+                return [$sale, $kembalian, $sisaHutang];
+            }
+        );
+
+        $pesan = 'Transaksi tersimpan.';
+        if ($kembalian > 0.004) {
+            $pesan .= ' Kembalian: Rp ' . number_format($kembalian, 0, ',', '.') . '.';
+        }
+        if ($sisaHutang > 0.004) {
+            $pesan .= ' Sisa hutang pelanggan: Rp ' . number_format($sisaHutang, 0, ',', '.') . '.';
+        }
+
+        return redirect()->route('kasir.show', $sale)->with('status', $pesan);
+    }
+
+    public function show(Sale $sale)
+    {
+        $sale->load(['items.product', 'settlementPayments', 'customerType', 'cashier']);
+
+        // Nota aktif: hanya uang yang masih berlaku. Nota batal: tampilkan uang aslinya.
+        $dibayar = (float) $sale->settlementPayments
+            ->when(! $sale->is_voided, fn ($c) => $c->whereNull('voided_at'))
+            ->sum('amount');
+
+        return view('kasir.show', compact('sale', 'dibayar'));
+    }
+
+    public function void(Request $request, Sale $sale)
+    {
+        abort_unless(Auth::user()->isAdmin(), 403, 'Hanya admin yang boleh membatalkan transaksi.');
+
+        $data = $request->validate([
+            'void_reason' => ['required', 'string', 'min:5', 'max:255'],
+        ]);
+
+        DB::transaction(function () use ($sale, $data) {
+            // Kunci per pelanggan, sama seperti saat transaksi dibuat
+            if ($sale->customer_id) {
+                $this->kunci('cust_' . $sale->customer_id);
+            }
+
+            $sale = Sale::whereKey($sale->id)->lockForUpdate()->firstOrFail();
+
+            if ($sale->is_voided) {
+                throw ValidationException::withMessages(['void_reason' => 'Transaksi ini sudah dibatalkan.']);
+            }
+
+            // Nota ini sudah dibayar lewat transaksi lain / halaman Piutang -> perlu penanganan manual
+            $dibayarTerpisah = Payment::where('sale_id', $sale->id)
+                ->whereNull('voided_at')
+                ->where(function ($q) use ($sale) {
+                    $q->whereNull('settlement_sale_id')
+                      ->orWhere('settlement_sale_id', '!=', $sale->id);
+                })
+                ->exists();
+
+            if ($dibayarTerpisah) {
+                throw ValidationException::withMessages([
+                    'void_reason' => 'Nota ini sudah dibayar lewat transaksi lain. Tidak bisa dibatalkan otomatis karena ada uang yang harus dikembalikan.',
+                ]);
+            }
+
+            // Balik semua uang yang diterima di nota ini (termasuk yang melunasi nota lama)
+            Payment::where('settlement_sale_id', $sale->id)
+                ->whereNull('voided_at')
+                ->update(['voided_at' => now()]);
+
+            $sale->update([
+                'is_voided'    => true,
+                'status'       => 'VOIDED',
+                'void_reason'  => $data['void_reason'],
+                'voided_at'    => now(),
+                'voided_by_id' => Auth::id(),
+            ]);
+        });
+
+        return redirect()->route('kasir.show', $sale)->with('status', 'Transaksi dibatalkan.');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Http\Controllers\PembelianController.php =====
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\AuditLog;
+use App\Models\PurchaseTransaction;
+use App\Models\Supplier;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+class PembelianController extends Controller
+{
+    /** Kunci antar-transaksi di PostgreSQL (otomatis lepas saat transaksi selesai). */
+    private function kunci(string $kunci): void
+    {
+        DB::select('select pg_advisory_xact_lock(?)', [(int) crc32($kunci)]);
+    }
+
+    /** Manager hanya membaca (sesuai PRD). */
+    private function bolehTulis(): bool
+    {
+        return strtoupper((string) Auth::user()->role) !== 'MANAGER';
+    }
+
+    private function wajibBolehTulis(): void
+    {
+        abort_unless($this->bolehTulis(), 403, 'Manager tidak dapat mencatat pembelian.');
+    }
+
+    public function index(Request $request)
+    {
+        $filter = $request->validate([
+            'dari'        => ['nullable', 'date'],
+            'sampai'      => ['nullable', 'date'],
+            'supplier_id' => ['nullable', 'uuid'],
+        ]);
+
+        $query = PurchaseTransaction::query()
+            ->when($filter['dari'] ?? null, fn ($q, $v) => $q->where('purchase_date', '>=', $v))
+            ->when($filter['sampai'] ?? null, fn ($q, $v) => $q->where('purchase_date', '<=', $v))
+            ->when($filter['supplier_id'] ?? null, fn ($q, $v) => $q->where('supplier_id', $v));
+
+        // Ringkasan dihitung dari semua data hasil filter, bukan hanya halaman ini
+        $ringkasan = (clone $query)
+            ->selectRaw('count(*) as jumlah, coalesce(sum(total_birds), 0) as ekor, coalesce(sum(total_weight_kg), 0) as kg, coalesce(sum(total_cost), 0) as biaya')
+            ->first();
+
+        $items = (clone $query)
+            ->with('supplier:id,code,name')
+            ->orderByDesc('purchase_date')
+            ->orderByDesc('transaction_number')
+            ->simplePaginate(25)
+            ->withQueryString();
+
+        $suppliers = Supplier::orderBy('name')->get(['id', 'name']);
+
+        return view('pembelian.index', [
+            'items'      => $items,
+            'ringkasan'  => $ringkasan,
+            'suppliers'  => $suppliers,
+            'filter'     => $filter,
+            'bolehTulis' => $this->bolehTulis(),
+        ]);
+    }
+
+    public function create()
+    {
+        $this->wajibBolehTulis();
+
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+
+        return view('pembelian.create', compact('suppliers'));
+    }
+
+    public function store(Request $request)
+    {
+        $this->wajibBolehTulis();
+
+        $data = $request->validate([
+            'supplier_id'       => ['bail', 'required', 'uuid', 'exists:suppliers,id'],
+            'purchase_date'     => ['required', 'date', 'before_or_equal:today'],
+            'total_birds'       => ['required', 'integer', 'min:1', 'max:1000000'],
+            'total_weight_kg'   => ['required', 'numeric', 'min:0.01', 'max:100000'],
+            'unit_price_per_kg' => ['required', 'numeric', 'min:1', 'max:9999999'],
+            'notes'             => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $supplier = Supplier::where('id', $data['supplier_id'])->where('is_active', true)->first();
+
+        if (! $supplier) {
+            throw ValidationException::withMessages([
+                'supplier_id' => 'Pemasok ini sudah tidak aktif. Pilih pemasok lain.',
+            ]);
+        }
+
+        $purchase = DB::transaction(function () use ($data, $supplier) {
+            $tanggal = Carbon::parse($data['purchase_date']);
+
+            // Nomor transaksi: PB-TanggalPembelian-Urut
+            $this->kunci('purchase_number_' . $tanggal->format('Ymd'));
+
+            $prefix   = 'PB-' . $tanggal->format('Ymd') . '-';
+            $terakhir = PurchaseTransaction::where('transaction_number', 'like', $prefix . '%')->max('transaction_number');
+            $urut     = $terakhir ? ((int) substr($terakhir, strlen($prefix))) + 1 : 1;
+
+            // Total biaya selalu dihitung di server, bukan dari isian browser
+            $berat = round((float) $data['total_weight_kg'], 2);
+            $harga = round((float) $data['unit_price_per_kg'], 2);
+
+            $purchase = PurchaseTransaction::create([
+                'transaction_number' => $prefix . str_pad((string) $urut, 4, '0', STR_PAD_LEFT),
+                'purchase_date'      => $tanggal->toDateString(),
+                'supplier_id'        => $supplier->id,
+                'total_birds'        => (int) $data['total_birds'],
+                'total_weight_kg'    => $berat,
+                'unit_price_per_kg'  => $harga,
+                'total_cost'         => round($berat * $harga, 2),
+                'notes'              => $data['notes'] ?? null,
+                'received_by_id'     => Auth::id(),
+            ]);
+
+            AuditLog::create([
+                'action'     => 'CREATE',
+                'table_name' => 'purchase_transactions',
+                'record_id'  => $purchase->id,
+                'new_values' => $purchase->getAttributes(),
+                'user_id'    => Auth::id(),
+            ]);
+
+            return $purchase;
+        });
+
+        return redirect()->route('pembelian.show', $purchase)
+            ->with('status', 'Pembelian tersimpan: ' . $purchase->transaction_number . '.');
+    }
+
+    public function show(PurchaseTransaction $purchase)
+    {
+        $purchase->load(['supplier', 'receivedBy']);
+
+        return view('pembelian.show', compact('purchase'));
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\Product.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function weighingRecords()
+    {
+        return $this->hasMany(WeighingRecord::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    public function stockAdjustments()
+    {
+        return $this->hasMany(StockAdjustment::class);
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\ProductionBatch.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class ProductionBatch extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'production_date' => 'date',
+            'input_birds' => 'integer',
+            'input_weight_kg' => 'decimal:2',
+        ];
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    public function weighingRecords()
+    {
+        return $this->hasMany(WeighingRecord::class, 'batch_id');
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'batch_id');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\StockMovement.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class StockMovement extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'decimal:2',
+            'entry_date' => 'datetime',
+        ];
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function batch()
+    {
+        return $this->belongsTo(ProductionBatch::class, 'batch_id');
+    }
+
+    public function weighingRecord()
+    {
+        return $this->belongsTo(WeighingRecord::class, 'weighing_record_id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\WeighingRecord.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class WeighingRecord extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'weight_kg' => 'decimal:2',
+            'pieces' => 'integer',
+        ];
+    }
+
+    public function batch()
+    {
+        return $this->belongsTo(ProductionBatch::class, 'batch_id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'weighing_record_id');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\StockAdjustment.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class StockAdjustment extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'adjustment_date' => 'date',
+            'system_qty' => 'decimal:2',
+            'physical_qty' => 'decimal:2',
+            'difference_qty' => 'decimal:2',
+        ];
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function adjustedBy()
+    {
+        return $this->belongsTo(User::class, 'adjusted_by_id');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\PurchaseTransaction.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class PurchaseTransaction extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'purchase_date' => 'date',
+            'total_birds' => 'integer',
+            'total_weight_kg' => 'decimal:2',
+            'unit_price_per_kg' => 'decimal:2',
+            'total_cost' => 'decimal:2',
+        ];
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function receivedBy()
+    {
+        return $this->belongsTo(User::class, 'received_by_id');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\Sale.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class Sale extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'sale_date' => 'date',
+            'is_voided' => 'boolean',
+        ];
+    }
+
+    public function items()
+    {
+        return $this->hasMany(SaleItem::class);
+    }
+
+    // Pembayaran yang dialokasikan ke nota ini
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    // Uang yang diterima saat nota ini dibuat (bisa melunasi nota lama)
+    public function settlementPayments()
+    {
+        return $this->hasMany(Payment::class, 'settlement_sale_id');
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function customerType()
+    {
+        return $this->belongsTo(CustomerType::class);
+    }
+
+    public function cashier()
+    {
+        return $this->belongsTo(User::class, 'cashier_id');
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\app\Models\SaleItem.php =====
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class SaleItem extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+}
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_09_30_230213_create_sales_tables.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (! Schema::hasTable('customers')) {
+            Schema::create('customers', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->string('name', 100);
+                $t->string('phone', 30)->nullable();
+                $t->string('address', 255)->nullable();
+                $t->foreignUuid('customer_type_id')->constrained('customer_types');
+                $t->boolean('is_active')->default(true);
+                $t->timestampsTz();
+            });
+        }
+
+        if (! Schema::hasTable('sales')) {
+            Schema::create('sales', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->string('sale_number', 50)->unique();
+                $t->date('sale_date')->index();
+                $t->foreignUuid('customer_id')->nullable()->constrained('customers');
+                $t->string('customer_name', 100);
+                $t->foreignUuid('customer_type_id')->constrained('customer_types');
+                $t->decimal('subtotal', 14, 2);
+                $t->decimal('discount', 14, 2)->default(0);
+                $t->decimal('total_amount', 14, 2);
+                $t->string('status', 20)->default('COMPLETED');
+                $t->boolean('is_voided')->default(false);
+                $t->string('void_reason', 255)->nullable();
+                $t->timestampTz('voided_at')->nullable();
+                $t->foreignUuid('voided_by_id')->nullable()->constrained('users');
+                $t->foreignUuid('cashier_id')->constrained('users');
+                $t->timestampsTz();
+            });
+        }
+
+        if (! Schema::hasTable('sale_items')) {
+            Schema::create('sale_items', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->foreignUuid('sale_id')->constrained('sales')->cascadeOnDelete();
+                $t->foreignUuid('product_id')->constrained('products');
+                $t->decimal('quantity', 10, 2);
+                $t->string('unit', 10)->default('KG');
+                $t->decimal('unit_price', 12, 2);
+                $t->decimal('subtotal', 14, 2);
+                $t->timestampsTz();
+            });
+        }
+
+        if (! Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->foreignUuid('sale_id')->constrained('sales');
+                $t->string('payment_method', 20)->default('CASH');
+                $t->decimal('amount', 14, 2);
+                $t->string('reference_number', 100)->nullable();
+                $t->foreignUuid('cashier_id')->constrained('users');
+                $t->timestampsTz();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('payments');
+        Schema::dropIfExists('sale_items');
+        Schema::dropIfExists('sales');
+        Schema::dropIfExists('customers');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000005_create_products_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('code', 30)->unique();
+            $table->string('name', 100);
+            $table->string('primary_unit', 10)->default('KG');
+            $table->string('description', 255)->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestampsTz();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('products');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000007_create_production_batches_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('production_batches', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('batch_number', 50)->unique();
+            $table->date('production_date');
+            $table->integer('input_birds');
+            $table->decimal('input_weight_kg', 10, 2);
+            $table->string('status', 20)->default('PLANNED');
+            $table->string('notes', 255)->nullable();
+            $table->foreignUuid('created_by_id')->constrained('users');
+            $table->timestampsTz();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('production_batches');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000008_create_purchase_transactions_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('purchase_transactions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('transaction_number', 50)->unique();
+            $table->date('purchase_date');
+            $table->foreignUuid('supplier_id')->constrained('suppliers');
+            $table->integer('total_birds');
+            $table->decimal('total_weight_kg', 10, 2);
+            $table->decimal('unit_price_per_kg', 12, 2);
+            $table->decimal('total_cost', 14, 2);
+            $table->string('notes', 255)->nullable();
+            $table->foreignUuid('received_by_id')->constrained('users');
+            $table->timestampsTz();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('purchase_transactions');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000010_create_sale_items_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (! Schema::hasTable('customers')) {
+            Schema::create('customers', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->string('name', 100);
+                $t->string('phone', 30)->nullable();
+                $t->string('address', 255)->nullable();
+                $t->foreignUuid('customer_type_id')->constrained('customer_types');
+                $t->boolean('is_active')->default(true);
+                $t->timestampsTz();
+            });
+        }
+
+        if (! Schema::hasTable('sales')) {
+            Schema::create('sales', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->string('sale_number', 50)->unique();
+                $t->date('sale_date')->index();
+                $t->foreignUuid('customer_id')->nullable()->constrained('customers');
+                $t->string('customer_name', 100);
+                $t->foreignUuid('customer_type_id')->constrained('customer_types');
+                $t->decimal('subtotal', 14, 2);
+                $t->decimal('discount', 14, 2)->default(0);
+                $t->decimal('total_amount', 14, 2);
+                $t->string('status', 20)->default('COMPLETED');
+                $t->boolean('is_voided')->default(false);
+                $t->string('void_reason', 255)->nullable();
+                $t->timestampTz('voided_at')->nullable();
+                $t->foreignUuid('voided_by_id')->nullable()->constrained('users');
+                $t->foreignUuid('cashier_id')->constrained('users');
+                $t->timestampsTz();
+            });
+        }
+
+        if (! Schema::hasTable('sale_items')) {
+            Schema::create('sale_items', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->foreignUuid('sale_id')->constrained('sales')->cascadeOnDelete();
+                $t->foreignUuid('product_id')->constrained('products');
+                $t->decimal('quantity', 10, 2);
+                $t->string('unit', 10)->default('KG');
+                $t->decimal('unit_price', 12, 2);
+                $t->decimal('subtotal', 14, 2);
+                $t->timestampsTz();
+            });
+        }
+
+        if (! Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->foreignUuid('sale_id')->constrained('sales');
+                $t->string('payment_method', 20)->default('CASH');
+                $t->decimal('amount', 14, 2);
+                $t->string('reference_number', 100)->nullable();
+                $t->foreignUuid('cashier_id')->constrained('users');
+                $t->timestampsTz();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('payments');
+        Schema::dropIfExists('sale_items');
+        Schema::dropIfExists('sales');
+        Schema::dropIfExists('customers');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000012_create_weighing_records_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('weighing_records', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('receipt_number', 50)->unique();
+            $table->foreignUuid('batch_id')->nullable()->constrained('production_batches');
+            $table->foreignUuid('product_id')->constrained('products');
+            $table->foreignUuid('storage_location_id')->constrained('storage_locations');
+            $table->decimal('weight_kg', 10, 2);
+            $table->integer('pieces')->nullable();
+            $table->foreignUuid('operator_id')->constrained('users');
+            $table->string('notes', 255)->nullable();
+            $table->timestampsTz();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('weighing_records');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000013_create_stock_movements_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('stock_movements', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('movement_number', 50)->unique();
+            $table->string('movement_type', 30);
+            $table->foreignUuid('product_id')->constrained('products');
+            $table->foreignUuid('storage_location_id')->constrained('storage_locations');
+            $table->decimal('quantity', 10, 2);
+            $table->string('unit', 10)->default('KG');
+            $table->foreignUuid('batch_id')->nullable()->constrained('production_batches');
+            $table->foreignUuid('weighing_record_id')->nullable()->constrained('weighing_records');
+            $table->string('reference_id', 100)->nullable();
+            $table->timestampTz('entry_date');
+            $table->foreignUuid('created_by_id')->constrained('users');
+            $table->string('notes', 255)->nullable();
+            $table->timestampsTz();
+
+            $table->index(['product_id', 'storage_location_id', 'entry_date'], 'idx_movements_fifo');
+            $table->index(['movement_type', 'product_id'], 'idx_movements_type_prod');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('stock_movements');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_000014_create_stock_adjustments_table.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('stock_adjustments', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('adjustment_number', 50)->unique();
+            $table->date('adjustment_date');
+            $table->foreignUuid('product_id')->constrained('products');
+            $table->foreignUuid('storage_location_id')->constrained('storage_locations');
+            $table->decimal('system_qty', 10, 2);
+            $table->decimal('physical_qty', 10, 2);
+            $table->decimal('difference_qty', 10, 2);
+            $table->string('reason', 255);
+            $table->foreignUuid('adjusted_by_id')->constrained('users');
+            $table->timestampsTz();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('stock_adjustments');
+    }
+};
+
+===== C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\database\migrations\2026_10_01_010000_drop_storage_location_from_stock_tables.php =====
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        foreach (['weighing_records', 'stock_movements', 'stock_adjustments'] as $tableName) {
+            if (Schema::hasColumn($tableName, 'storage_location_id')) {
+                Schema::table($tableName, function (Blueprint $table) {
+                    $table->dropConstrainedForeignId('storage_location_id');
+                });
+            }
+        }
+
+        // Buang index lama (kalau ada), lalu buat ulang tanpa kolom lokasi simpan
+        DB::statement('DROP INDEX IF EXISTS idx_movements_fifo');
+        DB::statement('CREATE INDEX IF NOT EXISTS idx_movements_fifo ON stock_movements (product_id, entry_date)');
+    }
+
+    public function down(): void
+    {
+        // Sengaja kosong: konsep lokasi simpan sudah dihapus dari aplikasi.
+    }
+};
+
+  Migration name .......................................................... Batch / Status  
+  0001_01_01_000000_create_users_table ........................................... [1] Ran  
+  0001_01_01_000001_create_cache_table ........................................... [1] Ran  
+  0001_01_01_000002_create_jobs_table ............................................ [1] Ran  
+  2026_09_30_230213_create_sales_tables .......................................... [2] Ran  
+  2026_09_30_235128_drop_storage_location_columns ................................ [3] Ran  
+  2026_10_01_000001_create_customer_types_table .................................. [1] Ran  
+  2026_10_01_000002_create_customers_table ....................................... [1] Ran  
+  2026_10_01_000003_create_suppliers_table ....................................... [1] Ran  
+  2026_10_01_000004_create_storage_locations_table ............................... [1] Ran  
+  2026_10_01_000005_create_products_table ........................................ [1] Ran  
+  2026_10_01_000006_create_product_prices_table .................................. [1] Ran  
+  2026_10_01_000007_create_production_batches_table .............................. [1] Ran  
+  2026_10_01_000008_create_purchase_transactions_table ........................... [1] Ran  
+  2026_10_01_000010_create_sale_items_table ...................................... [1] Ran  
+  2026_10_01_000011_create_payments_table ........................................ [1] Ran  
+  2026_10_01_000012_create_weighing_records_table ................................ [1] Ran  
+  2026_10_01_000013_create_stock_movements_table ................................. [1] Ran  
+  2026_10_01_000014_create_stock_adjustments_table ............................... [1] Ran  
+  2026_10_01_000015_create_expenses_table ........................................ [1] Ran  
+  2026_10_01_000016_create_audit_logs_table ...................................... [1] Ran  
+  2026_10_01_000229_add_piutang_columns .......................................... [4] Ran  
+  2026_10_01_002344_add_due_date_to_sales ........................................ [4] Ran  
+  2026_10_01_005108_add_voided_at_to_payments_table .............................. [5] Ran  
+  2026_10_01_010000_drop_storage_location_from_stock_tables ...................... [6] Ran  
+

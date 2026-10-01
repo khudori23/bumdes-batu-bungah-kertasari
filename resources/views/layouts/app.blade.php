@@ -99,8 +99,14 @@
     </header>
     <main>
         @unless (request()->routeIs('dashboard'))
+            @php
+                $rn = (string) request()->route()?->getName();
+                $pre = preg_replace('/\.[^.]+$/', '', $rn);
+                $induk = (! str_ends_with($rn, '.index') && \Illuminate\Support\Facades\Route::has($pre . '.index'))
+                    ? route($pre . '.index') : route('dashboard');
+            @endphp
             <div class="navhal">
-                <a href="{{ route('dashboard') }}" data-kembali>&larr; Kembali</a>
+                <a href="{{ $induk }}" data-kembali>&larr; Kembali</a>
                 <a href="{{ route('dashboard') }}">&#8962; Beranda</a>
             </div>
         @endunless

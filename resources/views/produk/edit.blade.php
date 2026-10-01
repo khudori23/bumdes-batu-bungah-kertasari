@@ -12,7 +12,7 @@
 <div class="card" style="max-width:780px">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem">
         <h2 style="margin:0">{{ $produk->name }} <span class="muted">({{ $produk->code }})</span></h2>
-        <a href="{{ route('produk.index') }}">&larr; Kembali</a>
+        <a href="{{ route('produk.index') }}" data-kembali>&larr; Kembali</a>
     </div>
 
     <form method="POST" action="{{ route('produk.update', $produk->id) }}" style="margin-top:1rem">

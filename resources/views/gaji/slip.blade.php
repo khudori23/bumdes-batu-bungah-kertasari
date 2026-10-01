@@ -45,12 +45,13 @@
     <div class="bar noprint">
         <span>{{ $slips->count() > 1 ? $slips->count() . ' slip siap cetak' : 'Pratinjau slip' }}</span>
         <span style="display:flex;gap:.5rem">
-            <a href="javascript:history.back()">Kembali</a>
+            <a href="{{ route('gaji.index') }}" data-kembali>Kembali</a>
             <button onclick="window.print()">Cetak</button>
         </span>
     </div>
     @foreach ($slips as $d)
         @include('gaji._slip', ['d' => $d])
     @endforeach
+    @include('partials.kembali')
 </body>
 </html>

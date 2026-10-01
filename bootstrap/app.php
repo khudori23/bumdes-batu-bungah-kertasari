@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->appendToGroup('web', \App\Http\Middleware\NoStoreAuth::class);
         // Cek peran harus lebih dulu daripada route model binding,
         // supaya peran tanpa hak mendapat 403 (bukan 404).
         $middleware->prependToPriorityList(

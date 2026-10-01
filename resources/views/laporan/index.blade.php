@@ -67,7 +67,7 @@
             <button type="submit">Tampilkan</button>
         </form>
         <span style="display:flex;gap:.5rem">
-            <a href="{{ route('dashboard') }}">Kembali</a>
+            <a href="{{ route('dashboard') }}" data-kembali>Kembali</a>
             <button type="button" onclick="window.print()">Cetak / Simpan PDF</button>
         </span>
     </div>
@@ -210,5 +210,6 @@
             <div>Disetujui oleh,<div class="sp"></div><div class="nama">{{ $set['slip_manager_name'] ?? '' }}</div><div class="jab">{{ $set['slip_manager_title'] ?? 'Direktur' }}</div></div>
         </div>
     </div>
+    @include('partials.kembali')
 </body>
 </html>

@@ -8,7 +8,7 @@
 <div class="card" style="max-width:640px">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem">
         <h2 style="margin:0">Ubah pelanggan</h2>
-        <a href="{{ route('pelanggan.index') }}">&larr; Kembali</a>
+        <a href="{{ route('pelanggan.index') }}" data-kembali>&larr; Kembali</a>
     </div>
     <p class="muted">Pelanggan ini punya {{ $c->sales_count }} nota. Pelanggan yang sudah punya nota tidak dihapus, cukup dinonaktifkan.</p>
 

@@ -36,6 +36,13 @@
         .chip.up { background:#ccfbf1; color:#0f766e; }
         .chip.down { background:#ffe4e6; color:#be123c; }
         .chip.warn { background:#fef3c7; color:#b45309; }
+    
+        /* navhal */
+        .navhal { display:flex; gap:.5rem; margin:0 0 1rem; position:sticky; top:0; z-index:20; background:var(--bg); padding:.4rem 0; }
+        .navhal a { display:inline-flex; align-items:center; gap:.35rem; padding:.45rem .9rem; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:var(--navy); text-decoration:none; font-size:.9rem; }
+        .navhal a:hover { border-color:var(--teal); color:var(--teal); }
+        @media (max-width:900px) { .navhal a { min-height:44px; flex:1; justify-content:center; } }
+        @media print { .navhal { display:none !important; } }
     </style>
 </head>
 <body>
@@ -91,10 +98,17 @@
         </nav>
     </header>
     <main>
+        @unless (request()->routeIs('dashboard'))
+            <div class="navhal">
+                <a href="{{ route('dashboard') }}" data-kembali>&larr; Kembali</a>
+                <a href="{{ route('dashboard') }}">&#8962; Beranda</a>
+            </div>
+        @endunless
         @if (session('status'))
             <div class="ok">{{ session('status') }}</div>
         @endif
         @yield('content')
     </main>
+    @include('partials.kembali')
 </body>
 </html>

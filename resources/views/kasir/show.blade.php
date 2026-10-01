@@ -14,6 +14,7 @@
 
 @php
     $rp = fn ($n) => 'Rp ' . number_format($n, 0, ',', '.');
+    $set = \App\Models\Setting::semua();
     $tagihan = $sale->total_amount + $sale->previous_balance;
     $batal = (bool) $sale->is_voided;
     $metode = $dibayar > 0
@@ -37,8 +38,11 @@
     @endif
 
     <div style="text-align:center">
-        <strong>BUMDes Batu Bungah Kertasari</strong><br>
-        <small>Nota Penjualan</small>
+        @if ($set['receipt_show_logo'] && $set['logo_path'])<img src="{{ asset('storage/' . $set['logo_path']) }}" alt="" style="max-height:48px;max-width:160px;margin-bottom:.3rem"><br>@endif
+        <strong>{{ $set['app_name'] }}</strong><br>
+        @if ($set['address'])<small>{{ $set['address'] }}</small><br>@endif
+        @if ($set['phone'])<small>Telp. {{ $set['phone'] }}</small><br>@endif
+        <small>{{ $set['receipt_title'] }}</small>
     </div>
     <hr style="border:0;border-top:1px dashed #94a3b8;margin:.8rem 0">
 
@@ -96,7 +100,8 @@
         @endif
     @endunless
 
-    <p style="text-align:center;margin-top:1rem;font-size:.85rem">Terima kasih</p>
+    @if ($set['receipt_thanks'])<p style="text-align:center;margin-top:1rem;font-size:.85rem">{!! nl2br(e($set['receipt_thanks'])) !!}</p>@endif
+    @if ($set['receipt_footer'])<p style="text-align:center;font-size:.75rem;color:#64748b">{!! nl2br(e($set['receipt_footer'])) !!}</p>@endif
 
     <div class="noprint" style="margin-top:1rem;display:flex;gap:.6rem">
         <button class="btn" style="margin:0" onclick="window.print()">Cetak</button>

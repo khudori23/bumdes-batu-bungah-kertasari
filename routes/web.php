@@ -8,9 +8,21 @@ use App\Http\Controllers\MortalitasController;
 use App\Http\Controllers\OpnameAyamController;
 use App\Http\Controllers\OpnameProdukController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\KasbonController;
+use App\Http\Controllers\GajiController;
+use App\Http\Controllers\PengaturanBonusController;
+use App\Http\Controllers\LabaRugiController;
+use App\Http\Controllers\PenerimaanGajiController;
+use App\Http\Controllers\PengeluaranController;
+use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProduksiController;
+use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\PelangganController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -85,6 +97,80 @@ Route::middleware('auth')->group(function () {
     Route::middleware(RoleMiddleware::class . ':PENGAWAS_KANDANG,KASIR')->group(function () {
         Route::get('/opname-produk', [OpnameProdukController::class, 'index'])->name('opnameproduk.index');
         Route::post('/opname-produk', [OpnameProdukController::class, 'store'])->name('opnameproduk.store');
+    });
+
+    // Produk & harga: ADMIN ubah, MANAGER hanya lihat. Kasir dan pengawas ditolak (403).
+    Route::middleware(RoleMiddleware::class)->prefix('produk')->name('produk.')->group(function () {
+        Route::get('/', [ProdukController::class, 'index'])->name('index');
+        Route::post('/', [ProdukController::class, 'store'])->name('store');
+        Route::get('/{id}/ubah', [ProdukController::class, 'edit'])->whereUuid('id')->name('edit');
+        Route::put('/{id}', [ProdukController::class, 'update'])->whereUuid('id')->name('update');
+        Route::put('/{id}/harga', [ProdukController::class, 'harga'])->whereUuid('id')->name('harga');
+    });
+
+    // Pelanggan: ADMIN kelola, KASIR lihat + tambah, MANAGER hanya lihat. Pengawas ditolak.
+    // Pembatasan ubah/tambah per peran dicek lagi di PelangganController.
+    Route::middleware(RoleMiddleware::class . ':KASIR')->prefix('pelanggan')->name('pelanggan.')->group(function () {
+        Route::get('/', [PelangganController::class, 'index'])->name('index');
+        Route::post('/', [PelangganController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [PelangganController::class, 'edit'])->whereUuid('id')->name('edit');
+        Route::put('/{id}', [PelangganController::class, 'update'])->whereUuid('id')->name('update');
+    });
+    // Pengaturan web (logo, ikon, nota, warna): khusus ADMIN, dicek di controller
+    Route::get('/pengaturan', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
+    Route::put('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
+    // Pengeluaran operasional: ADMIN mencatat, MANAGER hanya melihat (dicek di controller)
+    Route::get('/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran.index');
+    Route::post('/pengeluaran', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
+
+    // Kelola pengguna: khusus ADMIN (dicek di controller). {user} dibatasi UUID.
+    Route::prefix('pengguna')->name('pengguna.')->group(function () {
+        Route::get('/', [PenggunaController::class, 'index'])->name('index');
+        Route::get('/buat', [PenggunaController::class, 'create'])->name('create');
+        Route::post('/', [PenggunaController::class, 'store'])->name('store');
+        Route::get('/{user}/ubah', [PenggunaController::class, 'edit'])->whereUuid('user')->name('edit');
+        Route::put('/{user}', [PenggunaController::class, 'update'])->whereUuid('user')->name('update');
+        Route::post('/{user}/password', [PenggunaController::class, 'resetPassword'])->whereUuid('user')->name('password');
+    });
+
+    // SDM & Gaji: khusus ADMIN, disembunyikan dari semua peran lain (dicek di controller)
+    Route::prefix('karyawan')->name('karyawan.')->group(function () {
+        Route::get('/', [KaryawanController::class, 'index'])->name('index');
+        Route::get('/buat', [KaryawanController::class, 'create'])->name('create');
+        Route::post('/', [KaryawanController::class, 'store'])->name('store');
+        Route::get('/{employee}/ubah', [KaryawanController::class, 'edit'])->whereUuid('employee')->name('edit');
+        Route::put('/{employee}', [KaryawanController::class, 'update'])->whereUuid('employee')->name('update');
+    });
+
+    Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
+    Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+
+    Route::prefix('kasbon')->name('kasbon.')->group(function () {
+        Route::get('/', [KasbonController::class, 'index'])->name('index');
+        Route::post('/', [KasbonController::class, 'store'])->name('store');
+        Route::delete('/{loan}', [KasbonController::class, 'destroy'])->whereUuid('loan')->name('destroy');
+    });
+
+    Route::prefix('gaji')->name('gaji.')->group(function () {
+        Route::get('/', [GajiController::class, 'index'])->name('index');
+        Route::post('/buat', [GajiController::class, 'generate'])->name('generate');
+        Route::get('/pengaturan', [GajiController::class, 'pengaturan'])->name('pengaturan');
+        Route::put('/pengaturan', [GajiController::class, 'simpanPengaturan'])->name('pengaturan.simpan');
+        Route::get('/pengaturan/ttd', [GajiController::class, 'ttd'])->name('ttd');
+        Route::get('/penerimaan', PenerimaanGajiController::class)->name('penerimaan');
+        Route::get('/laba-rugi', LabaRugiController::class)->name('labarugi');
+        Route::get('/bonus', [PengaturanBonusController::class, 'edit'])->name('bonus');
+        Route::put('/bonus', [PengaturanBonusController::class, 'update'])->name('bonus.simpan');
+        Route::get('/slip-massal', [GajiController::class, 'slipMassal'])->name('slip.massal');
+        Route::get('/{payroll}', [GajiController::class, 'show'])->whereUuid('payroll')->name('show');
+        Route::put('/{payroll}', [GajiController::class, 'update'])->whereUuid('payroll')->name('update');
+        Route::post('/{payroll}/hitung-ulang', [GajiController::class, 'hitungUlang'])->whereUuid('payroll')->name('hitung');
+        Route::post('/{payroll}/terbitkan', [GajiController::class, 'terbitkan'])->whereUuid('payroll')->name('terbitkan');
+        Route::post('/{payroll}/bayar', [GajiController::class, 'bayar'])->whereUuid('payroll')->name('bayar');
+        Route::post('/{payroll}/batal', [GajiController::class, 'batal'])->whereUuid('payroll')->name('batal');
+        Route::delete('/{payroll}', [GajiController::class, 'hapus'])->whereUuid('payroll')->name('hapus');
+        Route::get('/{payroll}/slip', [GajiController::class, 'slip'])->whereUuid('payroll')->name('slip');
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

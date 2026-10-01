@@ -1,11 +1,12 @@
-<!DOCTYPE html>
+@php $set = \App\Models\Setting::semua(); @endphp<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Masuk - BUMDes Batu Bungah Kertasari</title>
+    <title>Masuk - {{ $set['app_name'] }}</title>
+    @if ($set['favicon_path'])<link rel="icon" href="{{ asset('storage/' . $set['favicon_path']) }}">@endif
     <style>
-        body { margin:0; min-height:100vh; display:grid; place-items:center; background:#0f172a; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+        body { margin:0; min-height:100vh; display:grid; place-items:center; background:{{ $set['warna_header'] }}; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
         .box { width:100%; max-width:380px; background:#fff; border-radius:12px; padding:2rem; }
         h1 { margin:0 0 .25rem; font-size:1.3rem; color:#0f172a; }
         p { margin:0 0 1rem; color:#64748b; font-size:.9rem; }
@@ -13,13 +14,14 @@
         input[type=text], input[type=password] { width:100%; padding:.6rem .7rem; border:1px solid #cbd5e1; border-radius:8px; font-size:1rem; box-sizing:border-box; }
         .err { color:#e11d48; font-size:.85rem; margin-top:.25rem; }
         .row { margin-top:.9rem; font-size:.85rem; }
-        button { width:100%; margin-top:1.2rem; background:#0d9488; color:#fff; border:0; padding:.7rem; border-radius:8px; font-size:1rem; cursor:pointer; }
+        button { width:100%; margin-top:1.2rem; background:{{ $set['warna_aksen'] }}; color:#fff; border:0; padding:.7rem; border-radius:8px; font-size:1rem; cursor:pointer; }
     </style>
 </head>
 <body>
     <form class="box" method="POST" action="{{ route('login.attempt') }}">
         @csrf
-        <h1>BUMDes Batu Bungah Kertasari</h1>
+        @if ($set['logo_path'])<img src="{{ asset('storage/' . $set['logo_path']) }}" alt="" style="max-height:56px;max-width:180px;display:block;margin-bottom:.6rem">@endif
+        <h1>{{ $set['app_name'] }}</h1>
         <p>Masuk untuk melanjutkan</p>
 
         <label for="username">Username</label>

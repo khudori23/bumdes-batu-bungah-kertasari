@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        if (! Schema::hasTable('payments')) Schema::create('payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('sale_id')->constrained('sales');
             $table->string('payment_method', 20)->default('CASH');

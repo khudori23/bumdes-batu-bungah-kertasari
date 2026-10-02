@@ -52,6 +52,7 @@
         .ttd .nama { border-top: 1px solid #0f172a; margin: 0 14px; padding-top: 3px; font-weight: 700; min-height: 18px; }
         .ttd .jab { color: #64748b; font-size: 10.5px; }
         h3, table, .kpi { page-break-inside: avoid; }
+        /* hp-2c */ @media screen and (max-width: 700px) { body { font-size: 13px; } .page { margin: 0; padding: 14px; box-shadow: none; } .kop img { max-width: 70px; } .kpi { grid-template-columns: 1fr 1fr; } td.r, th.r { white-space: normal; } p { text-align: left; } .ttd { grid-template-columns: 1fr; gap: 0; } .bar { padding: .5rem .7rem; } .bar form { width: 100%; } .bar form select { flex: 1 1 100%; } .bar form input { flex: 1 1 auto; } .bar select, .bar input, .bar a, .bar button { min-height: 40px; } }
         @media print { body { background: #fff; } .noprint { display: none !important; } .page { margin: 0; padding: 0; box-shadow: none; max-width: none; } }
     </style>
 </head>

@@ -12,6 +12,7 @@
     .pg .prev { display:flex; align-items:center; gap:.8rem; margin:.4rem 0; }
     .pg .prev img { max-height:56px; max-width:160px; border:1px solid var(--line); border-radius:8px; padding:4px; background:#fff; }
     .pg label.cek { display:flex; gap:.5rem; align-items:center; margin-top:.6rem; font-size:.88rem; }
+/* hp-2c */ @media (max-width: 600px) { .pg .prev img { max-width: 100%; } .pg input[type=color] { width: 72px; height: 44px; } .pg > .btn { width: 100%; min-height: 44px; } .pg label.cek { min-height: 40px; } }
 </style>
 
 <form method="POST" action="{{ route('pengaturan.update') }}" enctype="multipart/form-data" class="pg" style="max-width:680px">

@@ -10,6 +10,7 @@
     .total-box .lbl { font-size:.8rem; color:#94a3b8; }
     .total-box .big { font-size:1.8rem; font-weight:700; letter-spacing:-.02em; }
     .total-box .rata { font-size:.85rem; color:#cbd5e1; margin-top:.2rem; }
+/* hp-2c */ @media (max-width: 600px) { .total-box .big { font-size: 1.5rem; } #btn-simpan { width: 100%; min-height: 44px; } #form-beli > a { display: block; margin: .9rem 0 0 !important; text-align: center; } }
 </style>
 
 <div class="card" style="max-width:640px">

@@ -29,8 +29,8 @@ class User extends Authenticatable
      */
     public const FEATURES = [
         'kandang'        => [self::ROLE_PENGAWAS],                    // pembelian, pemasok, stok ayam hidup, mortalitas, opname ayam hidup
-        'produksi_input' => [self::ROLE_PENGAWAS],                    // input hasil produksi (kg)
-        'opname_hasil'   => [self::ROLE_PENGAWAS, self::ROLE_KASIR],  // opname stok hasil produksi
+        'produksi_input' => [self::ROLE_KASIR],                    // input hasil produksi (kg)
+        'opname_hasil'   => [self::ROLE_KASIR],  // opname stok hasil produksi
         'kasir'          => [self::ROLE_KASIR],                       // POS dan piutang
         'pengeluaran'    => [self::ROLE_KASIR],                       // catat uang keluar
     ];

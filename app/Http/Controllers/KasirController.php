@@ -375,4 +375,27 @@ class KasirController extends Controller
 
         return redirect()->route('kasir.show', $sale)->with('status', 'Transaksi dibatalkan.');
     }
-}
+
+    public function simpanPelanggan(\Illuminate\Http\Request $request)
+    {
+        abort_unless($request->user()->canWrite('kasir'), 403);
+
+        $data = $request->validate([
+            'name'             => ['required', 'string', 'max:100'],
+            'phone'            => ['nullable', 'string', 'max:30'],
+            'customer_type_id' => ['required', 'exists:customer_types,id'],
+        ]);
+
+        $c = \App\Models\Customer::firstOrCreate(
+            ['name' => $data['name']],
+            ['phone' => $data['phone'] ?? null, 'customer_type_id' => $data['customer_type_id']]
+        );
+
+        return response()->json([
+            'id'    => (string) $c->id,
+            'name'  => $c->name,
+            'type'  => (string) $c->customer_type_id,
+            'saldo' => 0,
+            'telat' => 0,
+        ]);
+    }}

@@ -20,71 +20,58 @@
                 <input type="date" name="adjustment_date" value="{{ old('adjustment_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
             </div>
 
-            <div style="overflow-x:auto;margin-top:.8rem">
-                <table>
-                    <thead>
-                        <tr><th>Produk</th><th class="right">Stok sistem (kg)</th><th>Stok fisik (kg)</th><th>Alasan jika selisih</th></tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($produk as $p)
-                            <tr>
-                                <td>{{ $p->name }}</td>
-                                <td class="right">{{ number_format($p->stok, 2, ',', '.') }}</td>
-                                <td style="min-width:130px">
-                                    <input type="number" step="0.01" min="0" name="fisik[{{ $p->id }}]" value="{{ old('fisik.' . $p->id) }}">
-                                </td>
-                                <td style="min-width:200px">
-                                    <input type="text" maxlength="255" name="alasan[{{ $p->id }}]" value="{{ old('alasan.' . $p->id) }}">
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="4" class="muted">Belum ada produk aktif.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div style="margin-top:1rem">
+                @forelse ($produk as $p)
+                    <div class="op">
+                        <div class="op-h">
+                            <strong>{{ $p->name }}</strong>
+                            <span class="muted">Sistem: {{ number_format($p->stok, 2, ',', '.') }} kg</span>
+                        </div>
+                        <div class="op-f">
+                            <input type="number" inputmode="decimal" step="0.01" min="0" name="fisik[{{ $p->id }}]" value="{{ old('fisik.' . $p->id) }}" placeholder="Stok fisik (kg)" aria-label="Stok fisik {{ $p->name }}">
+                            <input type="text" maxlength="255" name="alasan[{{ $p->id }}]" value="{{ old('alasan.' . $p->id) }}" placeholder="Alasan jika selisih" aria-label="Alasan {{ $p->name }}">
+                        </div>
+                    </div>
+                @empty
+                    <p class="muted">Belum ada produk aktif.</p>
+                @endforelse
             </div>
-            <button class="btn" type="submit">Simpan opname</button>
+            <button class="btn" type="submit" style="width:100%">Simpan opname</button>
         </form>
     @else
-        <div style="overflow-x:auto">
-            <table>
-                <thead><tr><th>Produk</th><th class="right">Stok sistem (kg)</th></tr></thead>
-                <tbody>
-                    @foreach ($produk as $p)
-                        <tr><td>{{ $p->name }}</td><td class="right">{{ number_format($p->stok, 2, ',', '.') }}</td></tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+        <table class="rtable">
+            <thead><tr><th>Produk</th><th class="right">Stok sistem (kg)</th></tr></thead>
+            <tbody>
+                @foreach ($produk as $p)
+                    <tr><td data-label="Produk">{{ $p->name }}</td><td class="right" data-label="Stok sistem">{{ number_format($p->stok, 2, ',', '.') }}</td></tr>
+                @endforeach
+            </tbody>
+        </table>
         <p class="muted">Anda hanya dapat melihat data ini.</p>
     @endif
 </div>
 
 <div class="card">
     <h3 style="margin-top:0">Riwayat opname</h3>
-    <div style="overflow-x:auto">
-        <table>
-            <thead>
-                <tr><th>Tanggal</th><th>Produk</th><th class="right">Sistem</th><th class="right">Fisik</th><th class="right">Selisih</th><th>Alasan</th><th>Oleh</th></tr>
-            </thead>
-            <tbody>
-                @forelse ($riwayat as $r)
-                    <tr>
-                        <td>{{ $r->adjustment_date->format('d/m/Y') }}</td>
-                        <td>{{ $r->product?->name }}</td>
-                        <td class="right">{{ number_format($r->system_qty, 2, ',', '.') }}</td>
-                        <td class="right">{{ number_format($r->physical_qty, 2, ',', '.') }}</td>
-                        <td class="right">
-                            <span class="chip {{ $r->difference_qty < 0 ? 'down' : ($r->difference_qty > 0 ? 'warn' : 'up') }}">{{ $r->difference_qty > 0 ? '+' : '' }}{{ number_format($r->difference_qty, 2, ',', '.') }}</span>
-                        </td>
-                        <td>{{ $r->reason }}</td>
-                        <td>{{ $r->adjustedBy?->name }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="7" class="muted">Belum ada opname.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+    <table class="rtable">
+        <thead>
+            <tr><th>Tanggal</th><th>Produk</th><th class="right">Sistem</th><th class="right">Fisik</th><th class="right">Selisih</th><th>Alasan</th><th>Oleh</th></tr>
+        </thead>
+        <tbody>
+            @forelse ($riwayat as $r)
+                <tr>
+                    <td data-label="Tanggal">{{ $r->adjustment_date->format('d/m/Y') }}</td>
+                    <td data-label="Produk"><strong>{{ $r->product?->name }}</strong></td>
+                    <td class="right" data-label="Sistem">{{ number_format($r->system_qty, 2, ',', '.') }}</td>
+                    <td class="right" data-label="Fisik">{{ number_format($r->physical_qty, 2, ',', '.') }}</td>
+                    <td class="right" data-label="Selisih"><span class="chip {{ $r->difference_qty < 0 ? 'down' : ($r->difference_qty > 0 ? 'warn' : 'up') }}">{{ $r->difference_qty > 0 ? '+' : '' }}{{ number_format($r->difference_qty, 2, ',', '.') }}</span></td>
+                    <td data-label="Alasan">{{ $r->reason ?: '-' }}</td>
+                    <td data-label="Oleh">{{ $r->adjustedBy?->name }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="7" class="muted">Belum ada opname.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
 @endsection

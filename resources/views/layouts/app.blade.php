@@ -8,7 +8,7 @@
     <style>:root { --hdr:{{ $set['warna_header'] }}; --accent:{{ $set['warna_aksen'] }}; }</style>
     <link rel="stylesheet" href="{{ asset('css/ui.css') }}?v={{ @filemtime(public_path('css/ui.css')) }}">
 </head>
-<body>
+<body class="{{ request()->routeIs('kasir.create') ? 'no-bn' : '' }}">
     @php
         $u = auth()->user();
         $menu = [
@@ -20,14 +20,14 @@
                 ['t' => 'Riwayat', 'r' => 'kasir.index', 'on' => ['kasir.*'], 'not' => ['kasir.create'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Piutang', 'r' => 'piutang.index', 'on' => ['piutang.*'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Pelanggan', 'r' => 'pelanggan.index', 'on' => ['pelanggan.*'], 'ok' => $u->canView('kasir')],
+                ['t' => 'Produksi', 'r' => 'produksi.index', 'on' => ['produksi.*'], 'ok' => $u->canView('produksi_input')],
+                ['t' => 'Opname Produk', 'r' => 'opnameproduk.index', 'on' => ['opnameproduk.*'], 'ok' => $u->canView('opname_hasil')],
             ],
             'Kandang & Produksi' => [
                 ['t' => 'Pembelian', 'r' => 'pembelian.index', 'on' => ['pembelian.*'], 'ok' => $u->canView('kandang')],
                 ['t' => 'Pemasok', 'r' => 'pemasok.index', 'on' => ['pemasok.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Ayam Mati', 'r' => 'mortalitas.index', 'on' => ['mortalitas.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Opname Ayam', 'r' => 'opnameayam.index', 'on' => ['opnameayam.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Produksi', 'r' => 'produksi.index', 'on' => ['produksi.*'], 'ok' => $u->canView('produksi_input')],
-                ['t' => 'Opname Produk', 'r' => 'opnameproduk.index', 'on' => ['opnameproduk.*'], 'ok' => $u->canView('opname_hasil')],
+                ['t' => 'Opname Ayam', 'r' => 'opnameayam.index', 'on' => ['opnameayam.*', 'mortalitas.*'], 'ok' => $u->canView('kandang')],
+                ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang')],
             ],
             'Data & Laporan' => [
                 ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
@@ -76,6 +76,41 @@
         </div>
     </aside>
     <div class="sb-overlay" id="sbOverlay"></div>
+    @php
+        $ic = [
+            'home'  => '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+            'cart'  => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.5a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H6"/>',
+            'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+            'box'   => '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+            'fact'  => '<path d="M4 20V10l5 3V9l5 3V6h6v14z"/>',
+            'clip'  => '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h6"/>',
+            'chart' => '<path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-3"/>',
+            'out'   => '<path d="M5 12h12M13 6l6 6-6 6M5 5v14"/>',
+            'menu'  => '<path d="M4 6h16M4 12h16M4 18h16"/>',
+        ];
+        $bnAll = [
+            ['t' => 'Beranda',  'r' => 'dashboard',            'on' => ['dashboard'],            'ok' => true, 'i' => 'home'],
+            ['t' => 'Kasir',    'r' => 'kasir.create',         'on' => ['kasir.create'],         'ok' => $u->canWrite('kasir'), 'i' => 'cart'],
+            ['t' => 'Riwayat',  'r' => 'kasir.index',          'on' => ['kasir.*'], 'not' => ['kasir.create'], 'ok' => $u->canView('kasir'), 'i' => 'clock'],
+            ['t' => 'Pembelian','r' => 'pembelian.index',      'on' => ['pembelian.*', 'pemasok.*'], 'ok' => $u->canView('kandang'), 'i' => 'box'],
+            ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang'), 'i' => 'out'],
+            ['t' => 'Produksi', 'r' => 'produksi.index',       'on' => ['produksi.*'],           'ok' => $u->canView('produksi_input'), 'i' => 'fact'],
+            ['t' => 'Opname',   'r' => 'opnameayam.index',     'on' => ['opnameayam.*', 'mortalitas.*'], 'ok' => $u->canView('kandang'), 'i' => 'clip'],
+            ['t' => 'Laporan',  'r' => 'laporan.index',        'on' => ['laporan.*'],            'ok' => ($u->isAdmin() || $u->isManager()), 'i' => 'chart'],
+            ['t' => 'Laporan',  'r' => 'laporankandang.index', 'on' => ['laporankandang.*'],     'ok' => $u->isPengawasKandang(), 'i' => 'chart'],
+        ];
+        $bnItems = array_slice(array_values(array_filter($bnAll, fn ($i) => $i['ok'])), 0, 4);
+    @endphp
+    <nav class="bn" aria-label="Navigasi cepat">
+        @foreach ($bnItems as $i)
+            @php $on = request()->routeIs(...$i['on']) && ! (! empty($i['not']) && request()->routeIs(...$i['not'])); @endphp
+            <a href="{{ route($i['r']) }}" class="{{ $on ? 'on' : '' }}" @if ($on) aria-current="page" @endif>
+                <svg viewBox="0 0 24 24" aria-hidden="true">{!! $ic[$i['i']] !!}</svg>{{ $i['t'] }}
+            </a>
+        @endforeach
+        <button type="button" id="bnMenu" aria-label="Buka menu lengkap"><svg viewBox="0 0 24 24" aria-hidden="true">{!! $ic['menu'] !!}</svg>Menu</button>
+    </nav>
+    <script>document.getElementById('bnMenu').addEventListener('click', function () { document.body.classList.add('sb-open'); });</script>
 
     <div class="app-body">
         <header class="topbar">

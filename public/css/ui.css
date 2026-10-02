@@ -89,3 +89,76 @@ th { font-size:.8rem; color:var(--muted); }
 }
 /* hp-2e */ @media (max-width:900px) { body.sb-open { overflow:hidden; } .sb { overscroll-behavior:contain; } }
 /* hp-2f */ @media (max-width:600px) { .gnav a { display:inline-flex; align-items:center; min-height:40px; } }
+
+/* ===== hp-3: navigasi bawah, kartu, tombol melayang ===== */
+.bn { display:none; }
+.fab { display:none; }
+.hd { display:flex; justify-content:space-between; align-items:center; gap:.8rem; }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1rem; }
+.stats .card { margin:0; }
+.stat-l { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+.stat-v { font-size:1.4rem; font-weight:700; }
+.stat-s { font-size:.78rem; color:var(--muted); }
+.fchips { display:flex; gap:.5rem; overflow-x:auto; padding-bottom:.4rem; margin-bottom:1rem; }
+.fchips a { white-space:nowrap; padding:.5rem 1rem; border:1px solid #cbd5e1; border-radius:99px; background:#fff; color:var(--navy); text-decoration:none; font-size:.88rem; }
+.fchips a.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+.sec-title { font-size:1rem; margin:0 0 .6rem; }
+@media (max-width:900px) {
+    body { padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)); }
+    .bn { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:45; height:calc(64px + env(safe-area-inset-bottom,0px)); padding-bottom:env(safe-area-inset-bottom,0px); background:#fff; border-top:1px solid var(--line); box-shadow:0 -2px 12px rgba(15,23,42,.07); }
+    .bn a, .bn button { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-width:0; background:none; border:0; color:var(--muted); font:inherit; font-size:.68rem; text-decoration:none; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent; }
+    .bn svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .bn .on { color:var(--accent); font-weight:600; }
+    .fab { display:flex; align-items:center; justify-content:center; position:fixed; right:1rem; bottom:calc(80px + env(safe-area-inset-bottom,0px)); width:56px; height:56px; border-radius:50%; background:var(--accent); color:#fff; font-size:1.9rem; line-height:1; text-decoration:none; box-shadow:0 6px 16px rgba(15,23,42,.28); z-index:44; }
+    .hide-m { display:none !important; }
+    .sb { z-index:60; } .sb-overlay { z-index:55; }
+}
+@media (max-width:700px) {
+    .stats { grid-template-columns:repeat(2,1fr); gap:.6rem; }
+    .stats .card { padding:.8rem; }
+    .stat-v { font-size:1.1rem; }
+    main table.rtable { display:block; overflow:visible; }
+    .rtable thead { display:none; }
+    .rtable tbody { display:block; }
+    .rtable tr { display:block; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:.6rem .9rem; margin-bottom:.7rem; }
+    .rtable td { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:.28rem 0; border:0; text-align:right; }
+    .rtable td[data-label]::before { content:attr(data-label); color:var(--muted); font-size:.8rem; text-align:left; flex:none; }
+    .rtable td[colspan] { display:block; text-align:center; }
+    .filter > div { flex:1 1 100%; }
+    .filter select { width:100% !important; }
+    .filter .btn { width:100%; min-height:46px; }
+    .card .btn, .btn { min-height:46px; }
+}
+/* hp-4: hamburger atas dihapus di HP, menu lewat bottom nav */
+@media (max-width:900px) {
+    .menu-btn { display:none !important; }
+    .topbar { padding-left:1rem; }
+}
+/* ===== hp-5: form baris, kartu opname, halaman kasir ===== */
+.stats.s3 { grid-template-columns:repeat(3,1fr); }
+.ir { display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:.5rem; align-items:center; margin-bottom:.5rem; }
+.ir-x { border:0; background:none; color:#e11d48; font-size:1.5rem; line-height:1; width:44px; height:44px; cursor:pointer; }
+.op { border:1px solid var(--line); border-radius:var(--radius); padding:.7rem .9rem; margin-bottom:.6rem; background:#fff; }
+.op-h { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-bottom:.5rem; }
+.op-f { display:grid; grid-template-columns:1fr 2fr; gap:.6rem; }
+.op-f input { width:100%; }
+.btn-row { display:flex; gap:.6rem; flex-wrap:wrap; }
+@media (max-width:700px) {
+    .stats.s3 { grid-template-columns:repeat(2,1fr); }
+    .ir { grid-template-columns:1fr 1fr auto; }
+    .ir select { grid-column:1 / -1; }
+    .ir input, .ir select, .op-f input { min-height:46px; }
+    .op-f { grid-template-columns:1fr; }
+    .btn-row .btn { flex:1; text-align:center; }
+}
+@media (max-width:900px) {
+    body.no-bn { padding-bottom:0; }
+    body.no-bn .bn { display:none; }
+    body.no-bn .menu-btn { display:inline-flex !important; }
+}
+/* ===== hp-6: baris hasil potong 2 kolom ===== */
+.ir.two { grid-template-columns:2fr 1fr auto; }
+@media (max-width:700px) {
+    .ir.two { grid-template-columns:1fr auto; }
+    .ir.two select { grid-column:1 / -1; }
+}

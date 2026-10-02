@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\LiveBirdMortality;
 use App\Models\LiveBirdOpname;
 use App\Services\StokService;
 use Illuminate\Http\Request;
@@ -18,7 +19,12 @@ class OpnameAyamController extends Controller
             ->orderByDesc('opname_date')->orderByDesc('created_at')
             ->simplePaginate(25);
 
+        $mati = LiveBirdMortality::with('createdBy:id,name')->orderByDesc('record_date')->orderByDesc('created_at')->simplePaginate(25, ['*'], 'mati');
+        $totalMati = DB::table('live_bird_mortalities')->selectRaw('coalesce(sum(birds),0) as e, coalesce(sum(weight_kg),0) as k')->first();
+
         return view('opname-ayam.index', [
+            'mati'       => $mati,
+            'totalMati'  => $totalMati,
             'items'      => $items,
             'stok'       => $stok->ayamHidup(),
             'bolehTulis' => Auth::user()->canWrite('kandang'),

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Attendance;
+use App\Models\AttendanceDay;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\Payroll;
@@ -13,18 +14,45 @@ use Illuminate\Support\Facades\Auth;
 
 class GajiService
 {
+    /** Tarif pembagian per kg (Rp) dari pengaturan. */
+    public function tarifPool(): float
+    {
+        return (float) (Setting::semua()['pool_tarif_per_kg'] ?? 1000);
+    }
+
+    /** Bonus kuota tetap per bulan untuk semua karyawan dan relawan. */
+    public function bonusKuota(): float
+    {
+        return (float) (Setting::semua()['bonus_kuota_bulanan'] ?? 50000);
+    }
+
     /** Ringkasan presensi satu karyawan pada satu bulan. */
     public function hitungPresensi(string $employeeId, int $tahun, int $bulan): array
     {
         $awal  = Carbon::create($tahun, $bulan, 1);
-        $rows  = Attendance::where('employee_id', $employeeId)
-            ->whereBetween('work_date', [$awal->toDateString(), $awal->copy()->endOfMonth()->toDateString()])
-            ->get(['status', 'kg_cut']);
+        $akhir = $awal->copy()->endOfMonth()->toDateString();
+
+        $rows = Attendance::where('employee_id', $employeeId)
+            ->whereBetween('work_date', [$awal->toDateString(), $akhir])
+            ->get(['work_date', 'status', 'kg_bagian', 'bagian_rp']);
+
+        $ditutup = AttendanceDay::whereBetween('work_date', [$awal->toDateString(), $akhir])
+            ->whereNotNull('closed_at')->get(['work_date'])
+            ->map(fn ($d) => $d->work_date->toDateString())->flip();
+
+        $belum = $rows->whereIn('status', ['HADIR', 'SETENGAH'])
+            ->filter(fn ($r) => ! $ditutup->has($r->work_date->toDateString()))->count();
 
         $n = fn (string $s) => $rows->where('status', $s)->count();
         $c = ['hadir' => $n('HADIR'), 'setengah' => $n('SETENGAH'), 'izin' => $n('IZIN'), 'sakit' => $n('SAKIT'), 'alfa' => $n('ALFA')];
 
-        return ['days' => $c['hadir'] + $c['setengah'] * 0.5, 'kg' => round((float) $rows->sum('kg_cut'), 2), 'counts' => $c];
+        return [
+            'days'         => $c['hadir'] + $c['setengah'] * 0.5,
+            'kg'           => round((float) $rows->sum('kg_bagian'), 2),
+            'rp'           => round((float) $rows->sum('bagian_rp'), 2),
+            'belum_dibagi' => $belum,
+            'counts'       => $c,
+        ];
     }
 
     /** Isi komponen gaji dari presensi + tarif karyawan saat ini. */
@@ -34,12 +62,12 @@ class GajiService
         $p->daily_rate         = (float) $e->daily_rate;
         $p->base_amount        = round($h['days'] * (float) $e->daily_rate, 2);
         $p->kg_total           = $h['kg'];
-        $p->per_kg_rate        = (float) $e->per_kg_rate;
-        $p->kg_amount          = round($h['kg'] * (float) $e->per_kg_rate, 2);
+        $p->per_kg_rate        = $h['kg'] > 0 ? round($h['rp'] / $h['kg'], 2) : $this->tarifPool();
+        $p->kg_amount          = round($h['rp'], 2);
         $p->attendance_counts  = $h['counts'];
-        $b = $this->hitungBonusRendemen($e, $p->period_year, $p->period_month);
-        $p->rendemen_bonus_kg     = $b['kg'];
-        $p->rendemen_bonus_amount = $b['amount'];
+        // Bonus rendemen tidak dipakai lagi: digantikan pembagian per kg.
+        $p->rendemen_bonus_kg     = 0;
+        $p->rendemen_bonus_amount = 0;
         $this->hitungTotal($p);
     }
 
@@ -51,8 +79,7 @@ class GajiService
     }
 
     /**
-     * Bonus rendemen relawan: Rp per kg x kg potong pada hari yang rendemennya >= ambang.
-     * Rendemen harian = total kg hasil timbang / total berat ayam masuk pada tanggal produksi itu.
+     * (Tidak dipanggil lagi) Bonus rendemen relawan versi lama. Dibiarkan agar riwayat tetap terbaca.
      */
     public function hitungBonusRendemen(Employee $e, int $tahun, int $bulan): array
     {
@@ -101,6 +128,7 @@ class GajiService
 
         return ['kg' => round($kg, 2), 'amount' => round($kg * $tarif, 2)];
     }
+
     /** Satu baris pengeluaran per bulan (total gaji dibayar), supaya gaji per orang tidak terlihat di menu Pengeluaran. */
     public function sinkronPengeluaran(int $tahun, int $bulan): void
     {

@@ -55,3 +55,63 @@ kbd{display:inline-block;font:inherit;font-size:.7rem;font-weight:600;padding:0 
 .btn-aksi{min-height:48px;padding:0 1.6rem;border:0;border-radius:12px;background:#0f766e;color:#fff;font:inherit;font-size:1.02rem;font-weight:700;cursor:pointer}
 .btn-aksi:disabled{background:#cbd5e1;cursor:not-allowed}
 .btn-mundur{width:48px;min-height:48px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;font-size:1.3rem;cursor:pointer}
+/* ---- persegi rapi (tanpa oval) ---- */
+:root{--r:8px}
+.pill,.tile,.btn-buka,.btn-bayar,.quick button,.total-box,.tempo-box,.kosong,
+.saran,.hutang-info,.galat,.step button,.hapus,.x,kbd,.mbar{border-radius:var(--r)}
+.saran button{border-radius:0}
+.sheet-box{border-radius:12px 12px 0 0}
+@media (min-width:700px){.sheet-box{border-radius:12px}}
+
+/* ---- form pelanggan baru ---- */
+.plg-box{margin-top:.6rem;padding:.8rem;border:1px solid var(--line);border-radius:var(--r);background:#f8fafc}
+.plg-box input{width:100%;margin-bottom:.5rem}
+.plg-err{margin-bottom:.5rem;padding:.4rem .6rem;border-radius:var(--r);background:#ffe4e6;color:#be123c;font-size:.85rem}
+.plg-aksi{display:flex;gap:.5rem}
+.plg-aksi button{flex:1;min-height:44px;border-radius:var(--r);font:inherit;font-weight:600;cursor:pointer}
+.btn-sec{border:1px solid #cbd5e1;background:#fff;color:#334155}
+.btn-simpan{border:0;background:var(--accent);color:#fff}
+.btn-simpan:disabled{opacity:.6;cursor:wait}
+/* ---- persegi rapi (tanpa oval) ---- */
+:root{--r:8px}
+.pill,.tile,.btn-buka,.btn-bayar,.quick button,.total-box,.tempo-box,.kosong,
+.saran,.hutang-info,.galat,.step button,.hapus,.x,kbd,.mbar{border-radius:var(--r)}
+.saran button{border-radius:0}
+.sheet-box{border-radius:12px 12px 0 0}
+@media (min-width:700px){.sheet-box{border-radius:12px}}
+
+/* ---- form pelanggan baru ---- */
+.plg-box{margin-top:.6rem;padding:.8rem;border:1px solid var(--line);border-radius:var(--r);background:#f8fafc}
+.plg-box input{width:100%;margin-bottom:.5rem}
+.plg-err{margin-bottom:.5rem;padding:.4rem .6rem;border-radius:var(--r);background:#ffe4e6;color:#be123c;font-size:.85rem}
+.plg-aksi{display:flex;gap:.5rem}
+.plg-aksi button{flex:1;min-height:44px;border-radius:var(--r);font:inherit;font-weight:600;cursor:pointer}
+.btn-sec{border:1px solid #cbd5e1;background:#fff;color:#334155}
+.btn-simpan{border:0;background:var(--accent);color:#fff}
+.btn-simpan:disabled{opacity:.6;cursor:wait}
+/* sembunyi-stepper */
+.steps{display:none!important}
+
+/* kasir-minimal */
+.steps{display:none!important}
+
+/* Kembali & Beranda: tautan teks minimalis */
+.navhal{display:flex!important;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.navhal a{display:inline-flex!important;align-items:center;width:auto!important;flex:none!important;min-height:32px;padding:.2rem .1rem!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:#64748b!important;font-size:.85rem!important;font-weight:500;text-decoration:none}
+.navhal a:hover{color:#0f172a!important}
+
+/* Jenis pelanggan: kecil, satu baris */
+#types{flex-wrap:nowrap;gap:.35rem;overflow:hidden}
+#types .pill{flex:1 1 0;min-width:0;min-height:34px;padding:.25rem .3rem;border-radius:6px;font-size:.8rem;white-space:nowrap;text-align:center;overflow:hidden;text-overflow:ellipsis}
+
+/* Simpan pelanggan (AJAX) */
+.btn-plg{margin-top:.5rem;min-height:36px;padding:.3rem .9rem;border:1px solid var(--teal,#0f766e);border-radius:6px;background:#fff;color:var(--teal,#0f766e);font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.btn-plg:disabled{opacity:.6;cursor:wait}
+.plg-msg{margin-left:.5rem;font-size:.8rem;color:#0f766e}
+
+/* sudut persegi untuk elemen yang sudah dikenal */
+.pill,.quick button,.total-box,.tempo-box,.saran,.hutang-info,.kosong{border-radius:6px}
+/* navhal-v2: Kembali & Beranda, minimalis */
+.navhal{display:flex!important;justify-content:space-between;align-items:center;margin:0 0 .6rem!important;padding:0 0 .5rem!important;border-bottom:1px solid var(--line,#e2e8f0)}
+.navhal a{display:inline-flex!important;align-items:center;gap:.3rem;min-height:36px;padding:0 .2rem!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:#475569!important;font-size:.82rem!important;font-weight:500;letter-spacing:.01em;text-decoration:none!important}
+.navhal a:hover,.navhal a:active{color:#0f766e!important}

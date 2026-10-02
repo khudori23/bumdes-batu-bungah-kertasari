@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AkunController;
+use App\Http\Controllers\AyamKeluarController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KasirController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\LaporanKandangController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('kasir')->name('kasir.')->group(function () {
             Route::get('/', [KasirController::class, 'create'])->name('create');
             Route::post('/', [KasirController::class, 'store'])->name('store');
+            Route::post('/pelanggan', [KasirController::class, 'simpanPelanggan'])->name('pelanggan.store');
             Route::get('/riwayat', [KasirController::class, 'index'])->name('index');
             Route::get('/{sale}', [KasirController::class, 'show'])->whereUuid('sale')->name('show');
             Route::post('/{sale}/void', [KasirController::class, 'void'])->whereUuid('sale')->name('void'); // khusus admin (dicek di controller)
@@ -79,25 +82,30 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [PemasokController::class, 'index'])->name('index');
             Route::get('/buat', [PemasokController::class, 'create'])->name('create');
             Route::post('/', [PemasokController::class, 'store'])->name('store');
+            Route::get('/{supplier}', [PemasokController::class, 'show'])->whereUuid('supplier')->name('show');
             Route::get('/{supplier}/ubah', [PemasokController::class, 'edit'])->whereUuid('supplier')->name('edit');
             Route::put('/{supplier}', [PemasokController::class, 'update'])->whereUuid('supplier')->name('update');
         });
 
         // Ayam mati, opname ayam hidup, input hasil produksi
         Route::get('/mortalitas', [MortalitasController::class, 'index'])->name('mortalitas.index');
+        Route::get('/laporan-kandang', [LaporanKandangController::class, 'index'])->name('laporankandang.index');
+        Route::get('/ayam-keluar', [AyamKeluarController::class, 'index'])->name('ayamkeluar.index');
+        Route::post('/ayam-keluar', [AyamKeluarController::class, 'store'])->name('ayamkeluar.store');
         Route::post('/mortalitas', [MortalitasController::class, 'store'])->name('mortalitas.store');
 
         Route::get('/opname-ayam', [OpnameAyamController::class, 'index'])->name('opnameayam.index');
         Route::post('/opname-ayam', [OpnameAyamController::class, 'store'])->name('opnameayam.store');
 
-        Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');
-        Route::post('/produksi', [ProduksiController::class, 'store'])->name('produksi.store');
     });
 
-    // Opname stok hasil produksi: ADMIN + PENGAWAS_KANDANG + KASIR (MANAGER hanya melihat)
-    Route::middleware(RoleMiddleware::class . ':PENGAWAS_KANDANG,KASIR')->group(function () {
+    // Opname stok & input hasil produksi: ADMIN + KASIR (MANAGER hanya melihat)
+    Route::middleware(RoleMiddleware::class . ':KASIR')->group(function () {
         Route::get('/opname-produk', [OpnameProdukController::class, 'index'])->name('opnameproduk.index');
         Route::post('/opname-produk', [OpnameProdukController::class, 'store'])->name('opnameproduk.store');
+
+        Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');
+        Route::post('/produksi', [ProduksiController::class, 'store'])->name('produksi.store');
     });
 
     // Produk & harga: ADMIN ubah, MANAGER hanya lihat. Kasir dan pengawas ditolak (403).
@@ -148,6 +156,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+    Route::post('/presensi/tutup', [PresensiController::class, 'tutup'])->name('presensi.tutup');
 
     Route::prefix('kasbon')->name('kasbon.')->group(function () {
         Route::get('/', [KasbonController::class, 'index'])->name('index');

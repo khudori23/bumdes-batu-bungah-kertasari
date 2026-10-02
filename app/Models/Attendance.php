@@ -13,7 +13,13 @@ class Attendance extends Model
 
     protected function casts(): array
     {
-        return ['work_date' => 'date', 'kg_cut' => 'decimal:2'];
+        return [
+            'work_date' => 'date',
+            'kg_cut'    => 'decimal:2',
+            'poin'      => 'decimal:2',
+            'kg_bagian' => 'decimal:3',
+            'bagian_rp' => 'decimal:2',
+        ];
     }
 
     public function employee() { return $this->belongsTo(Employee::class); }

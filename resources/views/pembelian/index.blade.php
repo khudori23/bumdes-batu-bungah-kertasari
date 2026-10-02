@@ -18,27 +18,27 @@
     </div>
 @endif
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem">
+<div class="stats">
     <div class="card">
-        <div style="font-size:.8rem;color:#64748b">TOTAL EKOR</div>
-        <div style="font-size:1.4rem;font-weight:700">{{ $ekor($ringkasan->ekor) }}</div>
-        <div style="font-size:.78rem;color:#64748b">{{ $ringkasan->jumlah }} transaksi</div>
+        <div class="stat-l">TOTAL EKOR</div>
+        <div class="stat-v">{{ $ekor($ringkasan->ekor) }}</div>
+        <div class="stat-s">{{ $ringkasan->jumlah }} transaksi</div>
     </div>
     <div class="card">
-        <div style="font-size:.8rem;color:#64748b">TOTAL BERAT</div>
-        <div style="font-size:1.4rem;font-weight:700">{{ $kg($ringkasan->kg) }} kg</div>
+        <div class="stat-l">TOTAL BERAT</div>
+        <div class="stat-v">{{ $kg($ringkasan->kg) }} kg</div>
     </div>
     <div class="card">
-        <div style="font-size:.8rem;color:#64748b">TOTAL BIAYA</div>
-        <div style="font-size:1.4rem;font-weight:700">{{ $rp($ringkasan->biaya) }}</div>
+        <div class="stat-l">TOTAL BIAYA</div>
+        <div class="stat-v">{{ $rp($ringkasan->biaya) }}</div>
     </div>
     <div class="card">
-        <div style="font-size:.8rem;color:#64748b">RATA-RATA HARGA/KG</div>
-        <div style="font-size:1.4rem;font-weight:700">{{ $rp($rataHarga) }}</div>
+        <div class="stat-l">RATA-RATA HARGA/KG</div>
+        <div class="stat-v">{{ $rp($rataHarga) }}</div>
     </div>
 </div>
 
-<form method="GET" action="{{ route('pembelian.index') }}" class="card" style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:end;margin-bottom:1rem">
+<form method="GET" action="{{ route('pembelian.index') }}" class="card filter" style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:end;margin-bottom:1rem">
     <div>
         <label for="dari" style="margin-top:0">Dari tanggal</label>
         <input type="date" id="dari" name="dari" value="{{ $filter['dari'] ?? '' }}">
@@ -61,14 +61,14 @@
 </form>
 
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
+    <div class="hd">
         <h2 style="margin:0">Pembelian Ayam Hidup</h2>
         @if ($bolehTulis)
-            <a href="{{ route('pembelian.create') }}" class="btn" style="margin:0;text-decoration:none">+ Catat Pembelian</a>
+            <a href="{{ route('pembelian.create') }}" class="btn hide-m" style="margin:0;text-decoration:none">+ Catat Pembelian</a>
         @endif
     </div>
 
-    <table style="margin-top:1rem">
+    <table class="rtable" style="margin-top:1rem">
         <thead>
             <tr>
                 <th>No. Transaksi</th><th>Tanggal</th><th>Pemasok</th>
@@ -79,13 +79,13 @@
         <tbody>
             @forelse ($items as $p)
                 <tr>
-                    <td><a href="{{ route('pembelian.show', $p) }}">{{ $p->transaction_number }}</a></td>
-                    <td>{{ $p->purchase_date->format('d/m/Y') }}</td>
-                    <td>{{ $p->supplier?->name ?? '-' }}</td>
-                    <td class="right">{{ $ekor($p->total_birds) }}</td>
-                    <td class="right">{{ $kg($p->total_weight_kg) }}</td>
-                    <td class="right">{{ $rp($p->unit_price_per_kg) }}</td>
-                    <td class="right"><strong>{{ $rp($p->total_cost) }}</strong></td>
+                    <td data-label="No."><a href="{{ route('pembelian.show', $p) }}">{{ $p->transaction_number }}</a></td>
+                    <td data-label="Tanggal">{{ $p->purchase_date->format('d/m/Y') }}</td>
+                    <td data-label="Pemasok">{{ $p->supplier?->name ?? '-' }}</td>
+                    <td class="right" data-label="Ekor">{{ $ekor($p->total_birds) }}</td>
+                    <td class="right" data-label="Berat (kg)">{{ $kg($p->total_weight_kg) }}</td>
+                    <td class="right" data-label="Harga/kg">{{ $rp($p->unit_price_per_kg) }}</td>
+                    <td class="right" data-label="Total"><strong>{{ $rp($p->total_cost) }}</strong></td>
                 </tr>
             @empty
                 <tr><td colspan="7">Belum ada pembelian untuk filter ini.</td></tr>
@@ -109,4 +109,5 @@
         </div>
     @endif
 </div>
+@if ($bolehTulis)<a class="fab" href="{{ route('pembelian.create') }}" aria-label="Catat Pembelian">+</a>@endif
 @endsection

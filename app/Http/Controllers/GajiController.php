@@ -97,6 +97,8 @@ class GajiController extends Controller
                     'employee_id' => $e->id, 'period_year' => $per->year, 'period_month' => $per->month,
                     'status' => 'DRAFT', 'created_by_id' => Auth::id(),
                 ]);
+                $p->bonus_amount = $svc->bonusKuota();
+                $p->bonus_note   = $p->bonus_amount > 0 ? 'Bonus kuota' : null;
                 $svc->terapkan($p, $e, $h);
                 $p->save();
                 $dibuat++;
@@ -194,6 +196,9 @@ class GajiController extends Controller
             $h = $svc->hitungPresensi($p->employee_id, $p->period_year, $p->period_month);
             if (abs($h['days'] - (float) $p->days_present) > 0.01 || abs($h['kg'] - (float) $p->kg_total) > 0.01) {
                 $this->gagal('status', 'Presensi berubah sejak draft dibuat. Klik "Hitung ulang" dulu sebelum menerbitkan.');
+            }
+            if (($h['belum_dibagi'] ?? 0) > 0) {
+                $this->gagal('status', $h['belum_dibagi'] . ' hari hadir belum dibagi per kg. Tutup harinya di menu Presensi, lalu klik "Hitung ulang".');
             }
             if ((float) $p->loan_deduction_amount > $p->employee->saldoKasbon() + 0.004) {
                 $this->gagal('status', 'Potongan kasbon melebihi saldo kasbon saat ini.');

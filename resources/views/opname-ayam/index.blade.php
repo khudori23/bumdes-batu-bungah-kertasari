@@ -72,4 +72,59 @@
     </div>
     <div style="margin-top:.8rem">{{ $items->links() }}</div>
 </div>
+<div class="card" id="ayam-mati">
+    <h2 style="margin-top:0">Ayam mati / afkir</h2>
+    <p class="muted">
+        Total tercatat mati: {{ number_format($totalMati->e, 0, ',', '.') }} ekor
+        ({{ number_format($totalMati->k, 1, ',', '.') }} kg). Pencatatan ayam mati mengurangi stok ayam hidup.
+    </p>
+
+    @if ($bolehTulis)
+        <form method="POST" action="{{ route('mortalitas.store') }}">
+            @csrf
+            <div class="fgrid">
+                <div>
+                    <label>Tanggal</label>
+                    <input type="date" name="record_date" value="{{ old('record_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                </div>
+                <div>
+                    <label>Jumlah (ekor)</label>
+                    <input type="number" name="birds" min="1" step="1" value="{{ old('birds') }}" required>
+                </div>
+                <div>
+                    <label>Perkiraan berat total (kg)</label>
+                    <input type="number" name="weight_kg" min="0" step="0.01" value="{{ old('weight_kg') }}" required>
+                </div>
+            </div>
+            <label>Penyebab (mis. Sakit, Mati di jalan, Suhu panas)</label>
+            <input type="text" name="cause" maxlength="100" value="{{ old('cause') }}">
+            <label>Catatan (opsional)</label>
+            <input type="text" name="notes" maxlength="255" value="{{ old('notes') }}">
+            <button class="btn" type="submit">Simpan ayam mati</button>
+        </form>
+    @endif
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0">Riwayat ayam mati</h3>
+    <div style="overflow-x:auto">
+        <table>
+            <thead><tr><th>Tanggal</th><th class="right">Ekor</th><th class="right">Berat (kg)</th><th>Penyebab</th><th>Dicatat oleh</th></tr></thead>
+            <tbody>
+                @forelse ($mati as $m)
+                    <tr>
+                        <td>{{ $m->record_date->format('d/m/Y') }}</td>
+                        <td class="right">{{ number_format($m->birds, 0, ',', '.') }}</td>
+                        <td class="right">{{ number_format($m->weight_kg, 2, ',', '.') }}</td>
+                        <td>{{ $m->cause ?: '-' }}@if ($m->notes)<div class="muted">{{ $m->notes }}</div>@endif</td>
+                        <td>{{ $m->createdBy?->name }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5" class="muted">Belum ada data ayam mati.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top:.8rem">{{ $mati->links() }}</div>
+</div>
 @endsection

@@ -1,0 +1,93 @@
+/* kasir.css - kasir tiga langkah, mengutamakan HP */
+.kasir{max-width:680px;margin:0 auto;padding-bottom:90px}
+.galat{background:#ffe4e6;border:1px solid #fecdd3;padding:.6rem .9rem;border-radius:8px;margin-bottom:1rem}
+.galat .err{margin:0}
+.steps{display:flex;gap:.4rem;margin-bottom:1rem}
+.stp{flex:1;min-height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer}
+.stp.sudah{color:#0f766e;border-color:#99f6e4;background:#f0fdfa}
+.stp.on{background:var(--hdr);border-color:var(--hdr);color:#fff;font-weight:600}
+.langkah{display:none}
+.langkah.on{display:block}
+.card{margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.pill{min-height:44px;padding:.5rem 1.05rem;border-radius:99px;border:1px solid #cbd5e1;background:#fff;color:#334155;font:inherit;font-size:.95rem;cursor:pointer}
+.pill.on{background:#0f766e;border-color:#0f766e;color:#fff;font-weight:600}
+.pill.hutang{color:#be123c;border-color:#fecdd3}
+.pill.hutang.on{background:#e11d48;border-color:#e11d48;color:#fff}
+.pill.kecil{min-height:36px;padding:.3rem .85rem;font-size:.85rem}
+.metode{margin-top:.8rem}
+.metode .pill{flex:1;text-align:center}
+.lbl2{font-size:.78rem;color:var(--muted);margin:.9rem 0 .35rem}
+.lbl2:first-child{margin-top:0}
+.hint{margin:.5rem 0 0;font-size:.78rem;color:var(--muted)}
+kbd{display:inline-block;font:inherit;font-size:.7rem;font-weight:600;padding:0 .4rem;border:1px solid #cbd5e1;border-radius:5px;background:#f1f5f9;color:var(--muted)}
+@media (pointer:coarse){.hint,label kbd{display:none}}
+#cari{font-size:1.05rem;padding:.8rem 1rem;margin-bottom:.8rem}
+.rw{display:flex;align-items:center;gap:.6rem;padding:.6rem .7rem;margin-bottom:.45rem;border:1px solid var(--line);border-radius:12px;background:#fff}
+.rw.on{border-color:#0f766e;background:#f0fdfa}
+.rw .nm{flex:1;min-width:0}
+.rw .nm b{display:block;font-size:.95rem;font-weight:600}
+.rw .hg{font-size:.78rem;color:var(--muted)}
+.rw .qty{width:84px;flex:none;padding:.55rem .3rem;text-align:center;font-size:1.1rem;font-weight:700}
+.rw .sub{min-width:84px;text-align:right;font-size:.85rem;font-weight:600}
+.kosong{padding:1rem;border:1px dashed #cbd5e1;border-radius:10px;text-align:center;color:var(--muted);font-size:.9rem}
+.total-box{padding:.8rem 1rem;border-radius:12px;background:var(--hdr);color:#fff}
+.total-box .lbl{font-size:.72rem;letter-spacing:.08em;color:rgba(255,255,255,.7)}
+.total-box .big{font-size:2.1rem;font-weight:700;letter-spacing:-.02em}
+.row2{display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-top:.55rem;font-size:.92rem}
+.row2 strong.merah{color:#e11d48}
+.kembali{font-size:1.3rem;font-weight:700;color:#0f766e}
+.tautan{margin-top:.5rem;padding:.4rem 0;border:0;background:none;color:#0f766e;font:inherit;font-size:.88rem;cursor:pointer;text-decoration:underline}
+.tempo-box{margin-top:.6rem;padding:.65rem .8rem;border-radius:10px;background:#f8fafc;border:1px solid var(--line);font-size:.88rem}
+.saran{position:absolute;top:100%;left:0;right:0;z-index:10;margin-top:4px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.15);overflow:hidden}
+.saran button{display:flex;justify-content:space-between;gap:.6rem;width:100%;min-height:44px;padding:.5rem .8rem;border:0;border-bottom:1px solid #eef2f6;background:#fff;font:inherit;text-align:left;cursor:pointer}
+.saran button.aktif,.saran button:hover{background:#f1f5f9}
+.saran .bon{color:#c2410c;font-size:.8rem;font-weight:600}
+.hutang-info{margin-top:.6rem;padding:.55rem .8rem;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:.85rem}
+.hutang-info.telat{background:#ffe4e6;border-color:#fecdd3;color:#be123c;font-weight:600}
+.quick{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.quick button{min-height:42px;padding:.4rem .95rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:inherit;font-size:.9rem;cursor:pointer}
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;align-items:center;gap:.8rem;padding:.6rem 1rem calc(.6rem + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 10px rgba(15,23,42,.08)}
+@media (min-width:901px){.mbar{left:var(--sb-w)}}
+.mbar .ringkas{flex:1;min-width:0}
+.mbar small{display:block;color:var(--muted);font-size:.78rem}
+.mbar b{font-size:1.25rem}
+.btn-aksi{min-height:48px;padding:0 1.6rem;border:0;border-radius:12px;background:#0f766e;color:#fff;font:inherit;font-size:1.02rem;font-weight:700;cursor:pointer}
+.btn-aksi:disabled{background:#cbd5e1;cursor:not-allowed}
+.btn-mundur{width:48px;min-height:48px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;font-size:1.3rem;cursor:pointer}
+/* ---- persegi rapi (tanpa oval) ---- */
+:root{--r:8px}
+.pill,.tile,.btn-buka,.btn-bayar,.quick button,.total-box,.tempo-box,.kosong,
+.saran,.hutang-info,.galat,.step button,.hapus,.x,kbd,.mbar{border-radius:var(--r)}
+.saran button{border-radius:0}
+.sheet-box{border-radius:12px 12px 0 0}
+@media (min-width:700px){.sheet-box{border-radius:12px}}
+
+/* ---- form pelanggan baru ---- */
+.plg-box{margin-top:.6rem;padding:.8rem;border:1px solid var(--line);border-radius:var(--r);background:#f8fafc}
+.plg-box input{width:100%;margin-bottom:.5rem}
+.plg-err{margin-bottom:.5rem;padding:.4rem .6rem;border-radius:var(--r);background:#ffe4e6;color:#be123c;font-size:.85rem}
+.plg-aksi{display:flex;gap:.5rem}
+.plg-aksi button{flex:1;min-height:44px;border-radius:var(--r);font:inherit;font-weight:600;cursor:pointer}
+.btn-sec{border:1px solid #cbd5e1;background:#fff;color:#334155}
+.btn-simpan{border:0;background:var(--accent);color:#fff}
+.btn-simpan:disabled{opacity:.6;cursor:wait}
+/* ---- persegi rapi (tanpa oval) ---- */
+:root{--r:8px}
+.pill,.tile,.btn-buka,.btn-bayar,.quick button,.total-box,.tempo-box,.kosong,
+.saran,.hutang-info,.galat,.step button,.hapus,.x,kbd,.mbar{border-radius:var(--r)}
+.saran button{border-radius:0}
+.sheet-box{border-radius:12px 12px 0 0}
+@media (min-width:700px){.sheet-box{border-radius:12px}}
+
+/* ---- form pelanggan baru ---- */
+.plg-box{margin-top:.6rem;padding:.8rem;border:1px solid var(--line);border-radius:var(--r);background:#f8fafc}
+.plg-box input{width:100%;margin-bottom:.5rem}
+.plg-err{margin-bottom:.5rem;padding:.4rem .6rem;border-radius:var(--r);background:#ffe4e6;color:#be123c;font-size:.85rem}
+.plg-aksi{display:flex;gap:.5rem}
+.plg-aksi button{flex:1;min-height:44px;border-radius:var(--r);font:inherit;font-weight:600;cursor:pointer}
+.btn-sec{border:1px solid #cbd5e1;background:#fff;color:#334155}
+.btn-simpan{border:0;background:var(--accent);color:#fff}
+.btn-simpan:disabled{opacity:.6;cursor:wait}
+/* sembunyi-stepper */
+.steps{display:none!important}

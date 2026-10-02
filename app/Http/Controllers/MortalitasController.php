@@ -12,21 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class MortalitasController extends Controller
 {
-    public function index(StokService $stok)
+    // Fitur ayam mati kini digabung ke halaman Opname Ayam
+    public function index()
     {
-        $items = LiveBirdMortality::with('createdBy:id,name')
-            ->orderByDesc('record_date')->orderByDesc('created_at')
-            ->simplePaginate(25);
-
-        $total = DB::table('live_bird_mortalities')
-            ->selectRaw('coalesce(sum(birds),0) as e, coalesce(sum(weight_kg),0) as k')->first();
-
-        return view('mortalitas.index', [
-            'items'      => $items,
-            'stok'       => $stok->ayamHidup(),
-            'total'      => $total,
-            'bolehTulis' => Auth::user()->canWrite('kandang'),
-        ]);
+        return redirect()->route('opnameayam.index');
     }
 
     public function store(Request $request, StokService $stok)
@@ -69,6 +58,6 @@ class MortalitasController extends Controller
             ]);
         });
 
-        return redirect()->route('mortalitas.index')->with('status', 'Data ayam mati tersimpan.');
+        return redirect()->route('opnameayam.index')->with('status', 'Data ayam mati tersimpan.');
     }
 }

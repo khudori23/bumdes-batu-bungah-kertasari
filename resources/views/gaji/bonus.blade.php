@@ -1,40 +1,35 @@
 @extends('layouts.app')
 
-@section('title', 'Pengaturan Bonus')
+@section('title', 'Bonus & Pembagian')
 
 @section('content')
 @include('gaji._nav')
-@php $num = fn ($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.') ?: '0'; @endphp
-
 <div class="card" style="max-width:640px">
-    <h2 style="margin-top:0">Pengaturan Bonus Rendemen</h2>
-    <p class="muted" style="line-height:1.5">
-        Bonus hanya untuk relawan. Besarnya = tarif per kg &times; kg potong pada hari yang rendemennya
-        mencapai ambang. Rendemen harian = total kg hasil timbang &divide; total berat ayam masuk pada tanggal produksi itu.
-    </p>
+    <h2 style="margin:0 0 .3rem">Pembagian per kg &amp; bonus</h2>
+    <div class="muted" style="margin-bottom:1rem">
+        Setiap hari, berat hasil produksi &times; tarif per kg dibagi ke semua yang hadir menurut poin.
+        Poin = bobot status (Hadir 1, Setengah hari 0,5) &times; bobot tipe pegawai.
+    </div>
 
     <form method="POST" action="{{ route('gaji.bonus.simpan') }}">
-        @csrf @method('PUT')
-        <div class="fgrid">
-            <div>
-                <label for="bonus_rendemen_per_kg">Bonus per kg hasil potong (Rp)</label>
-                <input type="number" id="bonus_rendemen_per_kg" name="bonus_rendemen_per_kg" min="0" max="1000000" step="any" required
-                       value="{{ old('bonus_rendemen_per_kg', $num($perKg)) }}">
-                <div class="muted">Isi 0 untuk menonaktifkan bonus.</div>
-            </div>
-            <div>
-                <label for="bonus_rendemen_min">Ambang rendemen minimal (%)</label>
-                <input type="number" id="bonus_rendemen_min" name="bonus_rendemen_min" min="0" max="100" step="any" required
-                       value="{{ old('bonus_rendemen_min', $num($ambang)) }}">
-                <div class="muted">0 = bonus berlaku untuk semua hari. Contoh: 70 = hanya hari dengan rendemen &ge; 70%.</div>
-            </div>
-        </div>
-        <button type="submit" class="btn">Simpan</button>
-    </form>
+        @csrf
+        @method('PUT')
 
-    <p class="muted" style="margin-top:1.2rem;line-height:1.5">
-        Slip yang sudah diterbitkan tidak berubah. Draft yang sudah ada tetap memakai nilai lama sampai Anda
-        membuka draft itu dan menekan <strong>Hitung ulang dari presensi</strong>.
-    </p>
+        <label style="display:block;margin-top:.6rem"><strong>Tarif per kg hasil produksi (Rp)</strong></label>
+        <input type="number" name="pool_tarif_per_kg" min="0" step="1" value="{{ old('pool_tarif_per_kg', $s['pool_tarif_per_kg']) }}" required style="padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;width:100%">
+
+        <label style="display:block;margin-top:.8rem"><strong>Bobot karyawan</strong></label>
+        <input type="number" name="pool_bobot_karyawan" min="0" max="10" step="0.01" value="{{ old('pool_bobot_karyawan', $s['pool_bobot_karyawan']) }}" required style="padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;width:100%">
+
+        <label style="display:block;margin-top:.8rem"><strong>Bobot relawan</strong></label>
+        <input type="number" name="pool_bobot_relawan" min="0" max="10" step="0.01" value="{{ old('pool_bobot_relawan', $s['pool_bobot_relawan']) }}" required style="padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;width:100%">
+        <div class="muted" style="margin-top:.2rem">Isi sama (1 dan 1) bila karyawan dan relawan mendapat porsi sama.</div>
+
+        <label style="display:block;margin-top:.8rem"><strong>Bonus kuota per bulan (Rp)</strong></label>
+        <input type="number" name="bonus_kuota_bulanan" min="0" step="1" value="{{ old('bonus_kuota_bulanan', $s['bonus_kuota_bulanan']) }}" required style="padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;width:100%">
+        <div class="muted" style="margin-top:.2rem">Terisi otomatis di slip saat draft dibuat, untuk semua karyawan dan relawan. Bonus penjualan bisa ditambahkan manual di slip.</div>
+
+        <button type="submit" class="btn" style="margin-top:1rem">Simpan</button>
+    </form>
 </div>
 @endsection

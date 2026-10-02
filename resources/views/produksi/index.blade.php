@@ -8,38 +8,28 @@
 <div class="card">
     <h2 style="margin-top:0">Input hasil produksi</h2>
     <p class="muted">
-        Stok ayam hidup saat ini: <strong>{{ number_format($stok['ekor'], 0, ',', '.') }} ekor</strong>
-        &middot; {{ number_format($stok['kg'], 1, ',', '.') }} kg.
-        Catat ayam yang diserahkan ke pemotongan beserta hasil potong per item (kg).
+        @if ($lihatAyam && $stok)
+            Stok ayam hidup saat ini: <strong>{{ number_format($stok['ekor'], 0, ',', '.') }} ekor</strong>
+            &middot; {{ number_format($stok['kg'], 1, ',', '.') }} kg.
+        @endif
+        Isi hasil potong per item (kg). Boleh diisi beberapa kali dalam sehari.
     </p>
 
     @if ($bolehTulis)
         <form method="POST" action="{{ route('produksi.store') }}">
             @csrf
-            <div class="fgrid">
-                <div>
-                    <label>Tanggal produksi</label>
-                    <input type="date" name="production_date" value="{{ old('production_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
-                </div>
-                <div>
-                    <label>Ayam masuk produksi (ekor)</label>
-                    <input type="number" name="input_birds" min="1" step="1" value="{{ old('input_birds') }}" required>
-                </div>
-                <div>
-                    <label>Berat ayam hidup (kg)</label>
-                    <input type="number" name="input_weight_kg" min="0.01" step="0.01" value="{{ old('input_weight_kg') }}" required>
-                </div>
+            <div style="max-width:240px">
+                <label>Tanggal produksi</label>
+                <input type="date" name="production_date" value="{{ old('production_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
             </div>
-            <label>Catatan (opsional)</label>
-            <input type="text" name="notes" maxlength="255" value="{{ old('notes') }}">
 
             <h3 style="margin:1.2rem 0 .2rem">Hasil potong per item</h3>
-            <table>
-                <thead><tr><th>Produk</th><th>Berat (kg)</th><th>Jumlah potong (opsional)</th><th></th></tr></thead>
-                <tbody id="rows"></tbody>
-            </table>
-            <button type="button" id="add" class="btn" style="background:#475569">+ Tambah baris</button>
-            <button type="submit" class="btn">Simpan produksi</button>
+            <p class="muted" style="margin:0 0 .6rem">Pilih produk dan isi berat (kg).</p>
+            <div id="rows"></div>
+            <div class="btn-row">
+                <button type="button" id="add" class="btn" style="background:#475569">+ Tambah baris</button>
+                <button type="submit" class="btn">Simpan produksi</button>
+            </div>
         </form>
 
         <script>
@@ -51,19 +41,19 @@
 
             function baris(v) {
                 var i = n++;
-                var tr = document.createElement('tr');
-                var opsi = '<option value="">- pilih -</option>' + produk.map(function (p) {
+                var d = document.createElement('div');
+                d.className = 'ir two';
+                var opsi = '<option value="">- pilih produk -</option>' + produk.map(function (p) {
                     return '<option value="' + p.id + '"' + (v.product_id === p.id ? ' selected' : '') + '>' + p.name + '</option>';
                 }).join('');
-                tr.innerHTML =
-                    '<td><select name="items[' + i + '][product_id]" required>' + opsi + '</select></td>' +
-                    '<td><input type="number" step="0.01" min="0.01" name="items[' + i + '][weight_kg]" value="' + (v.weight_kg || '') + '" required></td>' +
-                    '<td><input type="number" step="1" min="0" name="items[' + i + '][pieces]" value="' + (v.pieces || '') + '"></td>' +
-                    '<td><button type="button" style="border:0;background:none;color:#e11d48;cursor:pointer;font-size:1.1rem" title="Hapus">&times;</button></td>';
-                tr.querySelector('button').onclick = function () {
-                    if (body.children.length > 1) tr.remove();
+                d.innerHTML =
+                    '<select name="items[' + i + '][product_id]" required>' + opsi + '</select>' +
+                    '<input type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="Berat (kg)" name="items[' + i + '][weight_kg]" value="' + (v.weight_kg || '') + '" required>' +
+                    '<button type="button" class="ir-x" title="Hapus baris" aria-label="Hapus baris">&times;</button>';
+                d.querySelector('button').onclick = function () {
+                    if (body.children.length > 1) d.remove();
                 };
-                body.appendChild(tr);
+                body.appendChild(d);
             }
 
             (lama.length ? lama : [{}]).forEach(baris);
@@ -77,37 +67,46 @@
 
 <div class="card">
     <h3 style="margin-top:0">Riwayat produksi</h3>
-    <div style="overflow-x:auto">
-        <table>
-            <thead>
+    <table class="rtable">
+        <thead>
+            <tr>
+                <th>Tanggal / No.</th>
+                @if ($lihatAyam)<th class="right">Masuk</th>@endif
+                <th class="right">Hasil (kg)</th>
+                @if ($lihatAyam)<th class="right">Rendemen</th>@endif
+                <th>Rincian hasil</th><th>Oleh</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($batches as $b)
+                @php
+                    $hasil = (float) $b->weighingRecords->sum('weight_kg');
+                    $rend  = $b->input_weight_kg > 0 ? $hasil / (float) $b->input_weight_kg * 100 : null;
+                @endphp
                 <tr>
-                    <th>Tanggal / No.</th><th class="right">Masuk</th><th class="right">Hasil (kg)</th>
-                    <th class="right">Rendemen</th><th>Rincian hasil</th><th>Oleh</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($batches as $b)
-                    @php
-                        $hasil = (float) $b->weighingRecords->sum('weight_kg');
-                        $rend  = $b->input_weight_kg > 0 ? $hasil / (float) $b->input_weight_kg * 100 : 0;
-                    @endphp
-                    <tr>
-                        <td>{{ $b->production_date->format('d/m/Y') }}<div class="muted">{{ $b->batch_number }}</div></td>
-                        <td class="right">{{ number_format($b->input_birds, 0, ',', '.') }} ekor<div class="muted">{{ number_format($b->input_weight_kg, 2, ',', '.') }} kg</div></td>
-                        <td class="right">{{ number_format($hasil, 2, ',', '.') }}</td>
-                        <td class="right"><span class="chip {{ $rend < 65 ? 'warn' : 'up' }}">{{ number_format($rend, 1, ',', '.') }}%</span></td>
-                        <td>
-                            @foreach ($b->weighingRecords as $w)
-                                <div>{{ $w->product?->name }}: <strong>{{ number_format($w->weight_kg, 2, ',', '.') }} kg</strong></div>
-                            @endforeach
+                    <td data-label="Tanggal"><span>{{ $b->production_date->format('d/m/Y') }}<br><small class="muted">{{ $b->batch_number }}</small></span></td>
+                    @if ($lihatAyam)
+                        <td class="right" data-label="Masuk">
+                            @if ($b->input_birds > 0)<span>{{ number_format($b->input_birds, 0, ',', '.') }} ekor<br><small class="muted">{{ number_format($b->input_weight_kg, 2, ',', '.') }} kg</small></span>@else - @endif
                         </td>
-                        <td>{{ $b->createdBy?->name }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6" class="muted">Belum ada data produksi.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                    @endif
+                    <td class="right" data-label="Hasil (kg)"><strong>{{ number_format($hasil, 2, ',', '.') }}</strong></td>
+                    @if ($lihatAyam)
+                        <td class="right" data-label="Rendemen">
+                            @if ($rend !== null)<span class="chip {{ $rend < 65 || $rend > 100 ? 'warn' : 'up' }}">{{ number_format($rend, 1, ',', '.') }}%</span>@else - @endif
+                        </td>
+                    @endif
+                    <td data-label="Rincian"><span>
+                        @foreach ($b->weighingRecords as $w)
+                            {{ $w->product?->name }}: <strong>{{ number_format($w->weight_kg, 2, ',', '.') }} kg</strong>@if (! $loop->last)<br>@endif
+                        @endforeach
+                    </span></td>
+                    <td data-label="Oleh">{{ $b->createdBy?->name }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="6" class="muted">Belum ada data produksi.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
 @endsection

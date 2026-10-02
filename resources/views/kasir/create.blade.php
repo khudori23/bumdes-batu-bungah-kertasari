@@ -36,7 +36,10 @@
                     <div class="saran" id="saran" style="display:none"></div>
                 </div>
                 @if (auth()->user()->canWrite('kasir'))
-                    <div class="muted" style="margin-top:.3rem"><a href="{{ route('pelanggan.index') }}" target="_blank" rel="noopener">+ Pelanggan baru</a> &middot; nama baru otomatis jadi pelanggan saat nota disimpan.</div>
+                    <div>
+                        <button type="button" class="btn-plg" id="btn-simpan-plg" style="display:none">Simpan pelanggan</button>
+                        <span class="plg-msg" id="plg-msg"></span>
+                    </div>
                 @endif
                 <div class="hutang-info" id="info-hutang" style="display:none"></div>
             </div>
@@ -407,5 +410,60 @@
     hitung();
     ke(OLD.length ? 3 : 1);
     if (!sentuh && langkah === 1) $('pelanggan').focus();
+</script>
+<script>
+(function () {
+    var btn = document.getElementById('btn-simpan-plg');
+    if (!btn) return;
+    var inp = document.getElementById('pelanggan');
+    var msg = document.getElementById('plg-msg');
+    function nm(s) { return (s || '').trim().toLowerCase(); }
+    function ada(n) { try { return CUSTOMERS.some(function (c) { return nm(c.name) === n; }); } catch (e) { return false; } }
+    function cek() {
+        var n = nm(inp.value);
+        btn.style.display = (n && n !== 'umum' && !ada(n)) ? 'inline-block' : 'none';
+        msg.textContent = '';
+    }
+    inp.addEventListener('input', cek);
+    cek();
+
+    btn.addEventListener('click', function () {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+        msg.textContent = '';
+        fetch("{{ url('kasir/pelanggan') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+            },
+            body: JSON.stringify({
+                name: inp.value.trim(),
+                customer_type_id: document.getElementById('customer_type_id').value
+            })
+        })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (x) {
+            if (!x.ok) {
+                throw new Error(x.j.errors ? Object.values(x.j.errors)[0][0] : (x.j.message || 'Gagal menyimpan.'));
+            }
+            try { if (!CUSTOMERS.some(function (c) { return c.id === x.j.id; })) CUSTOMERS.push(x.j); } catch (e) {}
+            inp.value = x.j.name;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+            document.getElementById('customer_id').value = x.j.id;
+            msg.style.color = '#0f766e';
+            msg.textContent = 'Pelanggan tersimpan.';
+        })
+        .catch(function (e) {
+            msg.style.color = '#be123c';
+            msg.textContent = e.message || 'Gagal menyimpan.';
+        })
+        .finally(function () {
+            btn.disabled = false;
+            btn.textContent = 'Simpan pelanggan';
+        });
+    });
+})();
 </script>
 @endsection

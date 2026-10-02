@@ -35,6 +35,24 @@ class PemasokController extends Controller
         ]);
     }
 
+    public function show(Supplier $supplier)
+    {
+        $items = $supplier->purchaseTransactions()
+            ->orderByDesc('purchase_date')->orderByDesc('created_at')
+            ->simplePaginate(20);
+
+        $ring = DB::table('purchase_transactions')->where('supplier_id', $supplier->id)
+            ->selectRaw('count(*) as jumlah, coalesce(sum(total_birds),0) as ekor, coalesce(sum(total_weight_kg),0) as kg, coalesce(sum(total_cost),0) as biaya, max(purchase_date) as terakhir')
+            ->first();
+
+        return view('pemasok.show', [
+            'supplier'   => $supplier,
+            'items'      => $items,
+            'ring'       => $ring,
+            'bolehTulis' => $this->bolehTulis(),
+        ]);
+    }
+
     public function create()
     {
         $this->wajibBolehTulis();

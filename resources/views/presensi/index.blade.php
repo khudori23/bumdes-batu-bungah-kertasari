@@ -8,6 +8,11 @@
     $hariIni = now()->toDateString();
     $kemarin = $tgl->copy()->subDay()->toDateString();
     $besok   = $tgl->copy()->addDay()->toDateString();
+    $rp      = fn ($n) => 'Rp ' . number_format((float) $n, 0, ',', '.');
+    $tutup   = $hari !== null;
+    $bag     = $est['bagian'];
+    $perPoin = $est['total_poin'] > 0 ? $est['pool_rp'] / $est['total_poin'] : 0;
+    $terkunciHari = $tutup && $pesertaTerkunci->isNotEmpty();
 @endphp
 
 <div class="card">
@@ -28,68 +33,81 @@
         </div>
     </div>
 
-    <div style="margin:.8rem 0">
+    <div style="margin:.8rem 0;display:flex;gap:.4rem;flex-wrap:wrap">
         @if ((float) $prod->k > 0)
-            <span class="chip warn">Produksi hari ini: {{ number_format($prod->e, 0, ',', '.') }} ekor &middot; {{ number_format($prod->k, 1, ',', '.') }} kg ayam hidup</span>
+            <span class="chip">Ayam masuk produksi: {{ number_format($prod->e, 0, ',', '.') }} ekor &middot; {{ number_format($prod->k, 1, ',', '.') }} kg</span>
         @else
             <span class="chip">Belum ada data produksi pada tanggal ini</span>
         @endif
-        <span class="chip">Total kg potong diinput: <span id="total-kg">0</span></span>
+        <span class="chip warn">Hasil produksi: {{ number_format($est['pool_kg'], 1, ',', '.') }} kg &rarr; pool {{ $rp($est['pool_rp']) }} (Rp {{ number_format($est['tarif'], 0, ',', '.') }}/kg)</span>
+        <span class="chip">{{ $est['peserta'] }} orang hadir &middot; {{ number_format($est['total_poin'], 1, ',', '.') }} poin &middot; &asymp; {{ $rp($perPoin) }}/poin</span>
+        @if ($tutup)
+            <span class="chip">Sudah dibagi {{ $hari->closed_at->timezone(config('app.timezone'))->format('d/m H:i') }}</span>
+        @else
+            <span class="chip">Belum dibagi &middot; angka di tabel adalah estimasi dari presensi yang tersimpan</span>
+        @endif
+        @if ($terkunciHari)
+            <span class="chip warn">Terkunci: slip {{ $pesertaTerkunci->implode(', ') }} sudah terbit</span>
+        @endif
     </div>
+
+    @if ($est['pool_kg'] <= 0)
+        <div class="muted" style="margin-bottom:.6rem">Hasil produksi tanggal ini belum diinput, jadi pembagian per kg belum bisa dihitung.</div>
+    @endif
 
     <form method="POST" action="{{ route('presensi.store') }}" id="f-presensi">
         @csrf
         <input type="hidden" name="tanggal" value="{{ $tgl->toDateString() }}">
         <div style="overflow-x:auto">
         <table>
-            <thead><tr><th>Nama</th><th style="min-width:150px">Status</th><th style="min-width:110px">Kg dipotong</th><th>Keterangan</th></tr></thead>
+            <thead><tr><th>Nama</th><th style="min-width:150px">Status</th><th style="text-align:right">Poin</th><th style="text-align:right">Bagian per kg{{ $tutup ? '' : ' (estimasi)' }}</th><th>Keterangan</th></tr></thead>
             <tbody>
                 @forelse ($karyawan as $x)
-                    @php $a = $ada->get($x->id); $kunci = $terkunci->has($x->id); @endphp
+                    @php
+                        $a = $ada->get($x->id);
+                        $kunci = $terkunci->has($x->id) || $terkunciHari;
+                        if ($tutup) { $poin = (float) ($a?->poin ?? 0); $bg = (float) ($a?->bagian_rp ?? 0); }
+                        else { $poin = (float) ($bag[$x->id]['poin'] ?? 0); $bg = (float) ($bag[$x->id]['rp'] ?? 0); }
+                    @endphp
                     <tr>
                         <td><strong>{{ $x->name }}</strong> <span class="chip">{{ $x->type === 'RELAWAN' ? 'Relawan' : 'Karyawan' }}</span>
-                            @if ($kunci) <span class="chip warn">Slip terbit</span> @endif</td>
+                            @if ($terkunci->has($x->id)) <span class="chip warn">Slip terbit</span> @endif</td>
                         <td>
                             <select name="rows[{{ $x->id }}][status]" data-status @disabled($kunci)>
-                                <option value="">— belum diisi —</option>
+                                <option value="">&mdash; belum diisi &mdash;</option>
                                 @foreach ($status as $k => $v)
                                     <option value="{{ $k }}" @selected(($a?->status) === $k)>{{ $v }}</option>
                                 @endforeach
                             </select>
                         </td>
-                        <td>
-                            @if ((float) $x->per_kg_rate > 0)
-                                <input type="number" name="rows[{{ $x->id }}][kg_cut]" data-kg min="0" step="0.01" value="{{ $a && (float) $a->kg_cut > 0 ? (float) $a->kg_cut : '' }}" @disabled($kunci)>
-                            @else
-                                <span class="muted">-</span>
-                            @endif
-                        </td>
+                        <td style="text-align:right">{{ $poin > 0 ? rtrim(rtrim(number_format($poin, 2, ',', '.'), '0'), ',') : '-' }}</td>
+                        <td style="text-align:right">{{ $bg > 0 ? $rp($bg) : '-' }}</td>
                         <td><input type="text" name="rows[{{ $x->id }}][notes]" maxlength="255" value="{{ $a?->notes }}" @disabled($kunci) style="width:100%;padding:.5rem;border:1px solid #cbd5e1;border-radius:8px"></td>
                     </tr>
                 @empty
-                    <tr><td colspan="4">Belum ada karyawan aktif. Tambahkan dulu di tab Karyawan.</td></tr>
+                    <tr><td colspan="5">Belum ada karyawan aktif. Tambahkan dulu di tab Karyawan.</td></tr>
                 @endforelse
             </tbody>
         </table>
         </div>
-        <button type="submit" class="btn">Simpan Presensi</button>
+        <button type="submit" class="btn" @disabled($terkunciHari)>Simpan Presensi</button>
         <button type="button" id="semua-hadir" class="btn" style="background:#fff;color:#0f172a;border:1px solid #cbd5e1;margin-left:.4rem">Tandai semua hadir</button>
+    </form>
+
+    <form method="POST" action="{{ route('presensi.tutup') }}" style="margin-top:.8rem">
+        @csrf
+        <input type="hidden" name="tanggal" value="{{ $tgl->toDateString() }}">
+        <button type="submit" class="btn" style="margin:0" @disabled($terkunciHari)>{{ $tutup ? 'Hitung ulang pembagian' : 'Bagi per kg &amp; tutup hari' }}</button>
+        <span class="muted" style="margin-left:.5rem">Simpan presensi dulu, baru bagi. Bagian per kg masuk ke slip gaji setelah hari ditutup.</span>
     </form>
 </div>
 
 <script>
 (function () {
     var form = document.getElementById('f-presensi');
-    function total() {
-        var t = 0;
-        form.querySelectorAll('input[data-kg]:not(:disabled)').forEach(function (i) { t += parseFloat(i.value) || 0; });
-        document.getElementById('total-kg').textContent = t.toLocaleString('id-ID', { maximumFractionDigits: 2 });
-    }
     document.getElementById('semua-hadir').addEventListener('click', function () {
         form.querySelectorAll('select[data-status]:not(:disabled)').forEach(function (s) { if (!s.value) s.value = 'HADIR'; });
     });
-    form.addEventListener('input', total);
-    total();
 })();
 </script>
 @endsection

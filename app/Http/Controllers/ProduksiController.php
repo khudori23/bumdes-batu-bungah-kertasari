@@ -17,7 +17,12 @@ class ProduksiController extends Controller
 {
     public function index(StokService $stok)
     {
+        $user = Auth::user();
+        // Kasir tidak boleh melihat data ayam hidup (jumlah masuk, berat, rendemen)
+        $lihatAyam = ! $user->isKasir();
+
         $batches = ProductionBatch::with(['createdBy:id,name', 'weighingRecords.product:id,name'])
+            ->when(! $lihatAyam, fn ($q) => $q->has('weighingRecords'))
             ->orderByDesc('production_date')->orderByDesc('created_at')
             ->limit(30)->get();
 
@@ -26,9 +31,10 @@ class ProduksiController extends Controller
 
         return view('produksi.index', [
             'batches'    => $batches,
-            'stok'       => $stok->ayamHidup(),
+            'lihatAyam'  => $lihatAyam,
+            'stok'       => $lihatAyam ? $stok->ayamHidup() : null,
             'produkOpsi' => $produk->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values(),
-            'bolehTulis' => Auth::user()->canWrite('produksi_input'),
+            'bolehTulis' => $user->canWrite('produksi_input'),
         ]);
     }
 
@@ -38,60 +44,45 @@ class ProduksiController extends Controller
 
         $data = $request->validate([
             'production_date'    => ['required', 'date', 'before_or_equal:today'],
-            'input_birds'        => ['required', 'integer', 'min:1', 'max:1000000'],
-            'input_weight_kg'    => ['required', 'numeric', 'min:0.01', 'max:1000000'],
-            'notes'              => ['nullable', 'string', 'max:255'],
             'items'              => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'uuid', 'exists:products,id'],
             'items.*.weight_kg'  => ['required', 'numeric', 'min:0.01', 'max:1000000'],
-            'items.*.pieces'     => ['nullable', 'integer', 'min:0', 'max:1000000'],
         ]);
 
         $ids = collect($data['items'])->pluck('product_id')->unique()->all();
         $valid = Product::whereIn('id', $ids)->where('is_active', true)->where('is_live_bird', false)->count();
-
         if ($valid !== count($ids)) {
             throw ValidationException::withMessages([
                 'items' => 'Ada produk yang tidak valid atau tidak aktif. Muat ulang halaman.',
             ]);
         }
 
-        $masukKg = round((float) $data['input_weight_kg'], 2);
-        $hasilKg = round((float) collect($data['items'])->sum(fn ($r) => (float) $r['weight_kg']), 2);
-
-        if ($hasilKg > $masukKg) {
-            throw ValidationException::withMessages([
-                'items' => 'Total hasil (' . number_format($hasilKg, 2, ',', '.') . ' kg) tidak boleh melebihi berat ayam yang masuk produksi (' . number_format($masukKg, 2, ',', '.') . ' kg).',
-            ]);
-        }
-
-        $batch = DB::transaction(function () use ($data, $stok, $masukKg) {
+        $batch = DB::transaction(function () use ($data, $stok) {
             $tanggal = Carbon::parse($data['production_date']);
             $ymd = $tanggal->format('Ymd');
 
-            $stok->kunci('stok_ayam_hidup');
             $stok->kunci('produksi_number_' . $ymd);
 
-            $sisa = $stok->ayamHidup();
-            if ($data['input_birds'] > $sisa['ekor']) {
-                throw ValidationException::withMessages([
-                    'input_birds' => 'Jumlah ayam melebihi stok ayam hidup saat ini (' . number_format($sisa['ekor'], 0, ',', '.') . ' ekor).',
+            // Satu batch per tanggal: pakai yang sudah ada (mungkin dibuat Pengawas), kalau belum ada buat baru
+            $batch = ProductionBatch::where('production_date', $tanggal->toDateString())
+                ->orderBy('created_at')->lockForUpdate()->first();
+
+            if (! $batch) {
+                $prefix = 'PRD-' . $ymd . '-';
+                $terakhir = ProductionBatch::where('batch_number', 'like', $prefix . '%')->max('batch_number');
+                $urut = $terakhir ? ((int) substr($terakhir, strlen($prefix))) + 1 : 1;
+
+                $batch = ProductionBatch::create([
+                    'batch_number'    => $prefix . str_pad((string) $urut, 4, '0', STR_PAD_LEFT),
+                    'production_date' => $tanggal->toDateString(),
+                    'input_birds'     => 0,
+                    'input_weight_kg' => 0,
+                    'status'          => 'COMPLETED',
+                    'created_by_id'   => Auth::id(),
                 ]);
+            } elseif ($batch->status !== 'COMPLETED') {
+                $batch->update(['status' => 'COMPLETED']);
             }
-
-            $prefix = 'PRD-' . $ymd . '-';
-            $terakhir = ProductionBatch::where('batch_number', 'like', $prefix . '%')->max('batch_number');
-            $urut = $terakhir ? ((int) substr($terakhir, strlen($prefix))) + 1 : 1;
-
-            $batch = ProductionBatch::create([
-                'batch_number'    => $prefix . str_pad((string) $urut, 4, '0', STR_PAD_LEFT),
-                'production_date' => $tanggal->toDateString(),
-                'input_birds'     => (int) $data['input_birds'],
-                'input_weight_kg' => $masukKg,
-                'status'          => 'COMPLETED',
-                'notes'           => $data['notes'] ?? null,
-                'created_by_id'   => Auth::id(),
-            ]);
 
             $rp = 'WR-' . $ymd . '-';
             $akhir = WeighingRecord::where('receipt_number', 'like', $rp . '%')->max('receipt_number');
@@ -103,25 +94,27 @@ class ProduksiController extends Controller
                     'receipt_number' => $rp . str_pad((string) $no, 4, '0', STR_PAD_LEFT),
                     'product_id'     => $row['product_id'],
                     'weight_kg'      => round((float) $row['weight_kg'], 2),
-                    'pieces'         => ($row['pieces'] ?? '') !== '' ? (int) $row['pieces'] : null,
                     'operator_id'    => Auth::id(),
                 ]);
             }
 
             AuditLog::create([
                 'action'     => 'CREATE',
-                'table_name' => 'production_batches',
+                'table_name' => 'weighing_records',
                 'record_id'  => $batch->id,
-                'new_values' => $batch->getAttributes(),
+                'new_values' => ['batch_number' => $batch->batch_number, 'items' => $data['items']],
                 'user_id'    => Auth::id(),
             ]);
 
-            return $batch;
+            return $batch->fresh();
         });
 
-        $rend = $masukKg > 0 ? round($hasilKg / $masukKg * 100, 1) : 0;
+        $pesan = 'Hasil produksi tersimpan (' . $batch->batch_number . ').';
+        if (! Auth::user()->isKasir() && (float) $batch->input_weight_kg > 0) {
+            $total = (float) $batch->weighingRecords()->sum('weight_kg');
+            $pesan .= ' Rendemen tanggal itu ' . number_format($total / (float) $batch->input_weight_kg * 100, 1, ',', '.') . '%.';
+        }
 
-        return redirect()->route('produksi.index')
-            ->with('status', 'Produksi tersimpan: ' . $batch->batch_number . '. Rendemen ' . number_format($rend, 1, ',', '.') . '%.');
+        return redirect()->route('produksi.index')->with('status', $pesan);
     }
 }

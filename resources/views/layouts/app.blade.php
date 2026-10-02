@@ -5,116 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', $set['app_name'])</title>
     @if ($set['favicon_path'])<link rel="icon" href="{{ asset('storage/' . $set['favicon_path']) }}">@endif
-    <style>
-        :root { --navy:#0f172a; --teal:#0d9488; --line:#e2e8f0; --bg:#f8fafc; --hdr:{{ $set['warna_header'] }}; --accent:{{ $set['warna_aksen'] }}; }
-        * { box-sizing:border-box; }
-        body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--navy); }
-        header { background:var(--hdr); color:#fff; padding:.75rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
-        header nav { display:flex; flex-wrap:wrap; align-items:center; gap:.2rem 0; }
-        header a { color:#cbd5e1; margin-right:1rem; text-decoration:none; font-size:.9rem; }
-        header form { display:inline; }
-        header button { background:none; border:1px solid #475569; color:#e2e8f0; padding:.3rem .8rem; border-radius:6px; cursor:pointer; }
-        main { max-width:960px; margin:2rem auto; padding:0 1.5rem; }
-        .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.5rem; margin-bottom:1rem; }
-        .ok { background:#ccfbf1; border:1px solid #99f6e4; padding:.6rem .9rem; border-radius:8px; margin-bottom:1rem; }
-        label { display:block; font-size:.85rem; margin:.9rem 0 .3rem; }
-        input[type=text], input[type=password], input[type=date] { width:100%; padding:.6rem .7rem; border:1px solid #cbd5e1; border-radius:8px; font-size:1rem; }
-        .err { color:#e11d48; font-size:.85rem; margin-top:.25rem; }
-        .btn { margin-top:1.2rem; background:var(--accent); color:#fff; border:0; padding:.65rem 1.2rem; border-radius:8px; font-size:1rem; cursor:pointer; display:inline-block; }
-
-        /* Kasir */
-        table { width:100%; border-collapse:collapse; }
-        th, td { padding:.5rem .6rem; border-bottom:1px solid var(--line); text-align:left; }
-        th { font-size:.8rem; color:#64748b; }
-        select, input[type=number] { padding:.5rem; border:1px solid #cbd5e1; border-radius:8px; font-size:1rem; width:100%; }
-        .right { text-align:right; }
-
-        /* Kandang & stok */
-        .fgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0 .9rem; }
-        .muted { color:#64748b; font-size:.85rem; }
-        .chip { display:inline-flex; font-size:.74rem; font-weight:600; padding:.1rem .5rem; border-radius:99px; background:#f1f5f9; color:#64748b; }
-        .chip.up { background:#ccfbf1; color:#0f766e; }
-        .chip.down { background:#ffe4e6; color:#be123c; }
-        .chip.warn { background:#fef3c7; color:#b45309; }
-    
-        /* navhal */
-        .navhal { display:flex; gap:.5rem; margin:0 0 1rem; position:sticky; top:0; z-index:20; background:var(--bg); padding:.4rem 0; }
-        .navhal a { display:inline-flex; align-items:center; gap:.35rem; padding:.45rem .9rem; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:var(--navy); text-decoration:none; font-size:.9rem; }
-        .navhal a:hover { border-color:var(--teal); color:var(--teal); }
-        @media (max-width:900px) { .navhal a { min-height:44px; flex:1; justify-content:center; } }
-        @media print { .navhal { display:none !important; } }
-    </style>
+    <style>:root { --hdr:{{ $set['warna_header'] }}; --accent:{{ $set['warna_aksen'] }}; }</style>
+    <link rel="stylesheet" href="{{ asset('css/ui.css') }}?v={{ @filemtime(public_path('css/ui.css')) }}">
 </head>
 <body>
-    @php $u = auth()->user(); @endphp
-    <header>
-        <a href="{{ route('dashboard') }}" style="display:flex;align-items:center;gap:.6rem;margin:0;color:#fff;font-weight:700;font-size:1rem">@if ($set['logo_path'])<img src="{{ asset('storage/' . $set['logo_path']) }}" alt="" style="height:30px;width:auto;border-radius:4px">@endif{{ $set['app_name'] }}</a>
-        <nav>
-            <a href="{{ route('dashboard') }}">Dashboard</a>
+    @php
+        $u = auth()->user();
+        $menu = [
+            'Utama' => [
+                ['t' => 'Dashboard', 'r' => 'dashboard', 'on' => ['dashboard'], 'ok' => true],
+            ],
+            'Penjualan' => [
+                ['t' => 'Kasir', 'r' => 'kasir.create', 'on' => ['kasir.create'], 'ok' => $u->canWrite('kasir')],
+                ['t' => 'Riwayat', 'r' => 'kasir.index', 'on' => ['kasir.*'], 'not' => ['kasir.create'], 'ok' => $u->canView('kasir')],
+                ['t' => 'Piutang', 'r' => 'piutang.index', 'on' => ['piutang.*'], 'ok' => $u->canView('kasir')],
+                ['t' => 'Pelanggan', 'r' => 'pelanggan.index', 'on' => ['pelanggan.*'], 'ok' => $u->canView('kasir')],
+            ],
+            'Kandang & Produksi' => [
+                ['t' => 'Pembelian', 'r' => 'pembelian.index', 'on' => ['pembelian.*'], 'ok' => $u->canView('kandang')],
+                ['t' => 'Pemasok', 'r' => 'pemasok.index', 'on' => ['pemasok.*'], 'ok' => $u->canView('kandang')],
+                ['t' => 'Ayam Mati', 'r' => 'mortalitas.index', 'on' => ['mortalitas.*'], 'ok' => $u->canView('kandang')],
+                ['t' => 'Opname Ayam', 'r' => 'opnameayam.index', 'on' => ['opnameayam.*'], 'ok' => $u->canView('kandang')],
+                ['t' => 'Produksi', 'r' => 'produksi.index', 'on' => ['produksi.*'], 'ok' => $u->canView('produksi_input')],
+                ['t' => 'Opname Produk', 'r' => 'opnameproduk.index', 'on' => ['opnameproduk.*'], 'ok' => $u->canView('opname_hasil')],
+            ],
+            'Data & Laporan' => [
+                ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
+                ['t' => 'Pengeluaran', 'r' => 'pengeluaran.index', 'on' => ['pengeluaran.*'], 'ok' => $u->canView('pengeluaran')],
+                ['t' => 'Laporan', 'r' => 'laporan.index', 'on' => ['laporan.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
+            ],
+            'Administrasi' => [
+                ['t' => 'Pengguna', 'r' => 'pengguna.index', 'on' => ['pengguna.*'], 'ok' => $u->isAdmin()],
+                ['t' => 'SDM & Gaji', 'r' => 'gaji.index', 'on' => ['gaji.*'], 'ok' => $u->isAdmin()],
+                ['t' => 'Pengaturan', 'r' => 'pengaturan.edit', 'on' => ['pengaturan.*'], 'ok' => $u->isAdmin()],
+            ],
+        ];
+        $aktif = function (array $i): bool {
+            $a = request()->routeIs(...$i['on']);
+            if ($a && ! empty($i['not']) && request()->routeIs(...$i['not'])) {
+                $a = false;
+            }
+            return $a;
+        };
+    @endphp
 
-            @if ($u->canWrite('kasir'))
-                <a href="{{ route('kasir.create') }}">Kasir</a>
-            @endif
-            @if ($u->canView('kasir'))
-                <a href="{{ route('kasir.index') }}">Riwayat</a>
-                <a href="{{ route('piutang.index') }}">Piutang</a>
-            @endif
-
-            @if ($u->canView('kandang'))
-                <a href="{{ route('pembelian.index') }}">Pembelian</a>
-                <a href="{{ route('pemasok.index') }}">Pemasok</a>
-                <a href="{{ route('mortalitas.index') }}">Ayam Mati</a>
-                <a href="{{ route('opnameayam.index') }}">Opname Ayam</a>
-            @endif
-            @if ($u->canView('produksi_input'))
-                <a href="{{ route('produksi.index') }}">Produksi</a>
-            @endif
-            @if ($u->canView('opname_hasil'))
-                <a href="{{ route('opnameproduk.index') }}">Opname Produk</a>
-            @endif
-
-            @if ($u->isAdmin() || $u->isManager())
-                <a href="{{ route('produk.index') }}">Produk</a>
-            @endif
-            @if ($u->canView('kasir'))
-                <a href="{{ route('pelanggan.index') }}">Pelanggan</a>
-            @endif
-            @if ($u->canView('pengeluaran'))
-                <a href="{{ route('pengeluaran.index') }}">Pengeluaran</a>
-            @endif
-            @if ($u->isAdmin() || $u->isManager())
-                <a href="{{ route('laporan.index') }}">Laporan</a>
-            @endif
-            @if ($u->isAdmin())
-                <a href="{{ route('pengguna.index') }}">Pengguna</a>
-                <a href="{{ route('gaji.index') }}">SDM & Gaji</a>
-                <a href="{{ route('pengaturan.edit') }}">Pengaturan</a>
-            @endif
-            <a href="{{ route('akun.password') }}">Ganti Password</a>
+    <aside class="sb" id="sb" aria-label="Menu utama">
+        <a class="sb-brand" href="{{ route('dashboard') }}">
+            @if ($set['logo_path'])<img src="{{ asset('storage/' . $set['logo_path']) }}" alt="">@endif
+            <span>{{ $set['app_name'] }}</span>
+        </a>
+        <nav class="sb-nav">
+            @foreach ($menu as $judul => $items)
+                @php $tampil = array_filter($items, fn ($i) => $i['ok']); @endphp
+                @if (count($tampil))
+                    <div class="sb-group">
+                        <p class="sb-title">{{ $judul }}</p>
+                        @foreach ($tampil as $i)
+                            <a class="sb-link {{ $aktif($i) ? 'on' : '' }}" href="{{ route($i['r']) }}" @if ($aktif($i)) aria-current="page" @endif>{{ $i['t'] }}</a>
+                        @endforeach
+                    </div>
+                @endif
+            @endforeach
+        </nav>
+        <div class="sb-foot">
+            <a class="sb-link {{ request()->routeIs('akun.*') ? 'on' : '' }}" href="{{ route('akun.password') }}">Ganti Password</a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit">Keluar ({{ $u->username }})</button>
             </form>
-        </nav>
-    </header>
-    <main>
-        @unless (request()->routeIs('dashboard'))
-            @php
-                $rn = (string) request()->route()?->getName();
-                $pre = preg_replace('/\.[^.]+$/', '', $rn);
-                $induk = (! str_ends_with($rn, '.index') && \Illuminate\Support\Facades\Route::has($pre . '.index'))
-                    ? route($pre . '.index') : route('dashboard');
-            @endphp
-            <div class="navhal">
-                <a href="{{ $induk }}" data-kembali>&larr; Kembali</a>
-                <a href="{{ route('dashboard') }}">&#8962; Beranda</a>
-            </div>
-        @endunless
-        @if (session('status'))
-            <div class="ok">{{ session('status') }}</div>
-        @endif
-        @yield('content')
-    </main>
+        </div>
+    </aside>
+    <div class="sb-overlay" id="sbOverlay"></div>
+
+    <div class="app-body">
+        <header class="topbar">
+            <button type="button" class="menu-btn" id="menuBtn" aria-label="Buka menu" aria-controls="sb" aria-expanded="false"><span></span></button>
+            <div class="topbar-title">@yield('title', $set['app_name'])</div>
+            <div class="topbar-user">{{ $u->username }}</div>
+        </header>
+        <main>
+            @unless (request()->routeIs('dashboard'))
+                @php
+                    $rn = (string) request()->route()?->getName();
+                    $pre = preg_replace('/\.[^.]+$/', '', $rn);
+                    $induk = (! str_ends_with($rn, '.index') && \Illuminate\Support\Facades\Route::has($pre . '.index'))
+                        ? route($pre . '.index') : route('dashboard');
+                @endphp
+                <div class="navhal">
+                    <a href="{{ $induk }}" data-kembali>&larr; Kembali</a>
+                    <a href="{{ route('dashboard') }}">&#8962; Beranda</a>
+                </div>
+            @endunless
+            @if (session('status'))
+                <div class="ok">{{ session('status') }}</div>
+            @endif
+            @yield('content')
+        </main>
+    </div>
+
+    <script>
+    (function () {
+        var b = document.body, btn = document.getElementById('menuBtn');
+        function set(buka) {
+            b.classList.toggle('sb-open', buka);
+            btn.setAttribute('aria-expanded', buka ? 'true' : 'false');
+        }
+        btn.addEventListener('click', function () { set(! b.classList.contains('sb-open')); });
+        document.getElementById('sbOverlay').addEventListener('click', function () { set(false); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+        document.querySelectorAll('#sb a').forEach(function (a) { a.addEventListener('click', function () { set(false); }); });
+        window.addEventListener('pageshow', function () { set(false); });
+    })();
+    </script>
     @include('partials.kembali')
 </body>
 </html>

@@ -10,6 +10,7 @@
         main { margin: 0; max-width: 100%; padding: 0; }
         .card { border: 0; }
     }
+/* hp-2d */ @media screen and (max-width:600px) { .noprint { flex-wrap: wrap; } .noprint .btn { flex: 1 1 auto; text-align: center; min-height: 44px; } }
 </style>
 
 @php

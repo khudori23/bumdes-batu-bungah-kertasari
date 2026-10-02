@@ -15,6 +15,8 @@ class Attendance extends Model
     {
         return [
             'work_date' => 'date',
+            'clock_in_at'  => 'datetime',
+            'clock_out_at' => 'datetime',
             'kg_cut'    => 'decimal:2',
             'poin'      => 'decimal:2',
             'kg_bagian' => 'decimal:3',

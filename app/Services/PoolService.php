@@ -126,6 +126,12 @@ class PoolService
     /** Tutup hari: bagi dan simpan. Panggil di dalam transaksi. */
     public function tutup(string $tgl, string $userId): array
     {
+        $belum = Attendance::with('employee')->where('work_date', $tgl)
+            ->whereNotNull('clock_in_at')->whereNull('status')->get();
+        if ($belum->isNotEmpty()) {
+            $this->gagal('Belum absen pulang: ' . $belum->map(fn ($a) => $a->employee->name)->implode(', ') . '. Isi statusnya di lembar presensi, lalu bagi lagi.');
+        }
+
         $kunci = $this->pesertaTerkunci($tgl);
         if ($kunci->isNotEmpty()) {
             $this->gagal('Tidak bisa dibagi atau dihitung ulang: slip gaji ' . $kunci->implode(', ') . ' sudah terbit.');

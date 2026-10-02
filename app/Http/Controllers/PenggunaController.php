@@ -18,6 +18,7 @@ class PenggunaController extends Controller
         'MANAGER'          => 'Manager',
         'PENGAWAS_KANDANG' => 'Pengawas Kandang',
         'KASIR'            => 'Kasir',
+        'PEGAWAI'          => 'Pegawai (hanya absen)',
     ];
 
     private const PESAN = [
@@ -156,6 +157,35 @@ class PenggunaController extends Controller
         });
 
         return redirect()->route('pengguna.index')->with('status', 'Data pengguna ' . $data['username'] . ' diperbarui.');
+    }
+
+    public function hubungkanPegawai(Request $request, User $user)
+    {
+        $this->wajibAdmin();
+
+        $d = $request->validate([
+            'employee_id' => ['nullable', 'uuid', Rule::exists('employees', 'id')->where('is_active', true)],
+        ]);
+        $eid = $d['employee_id'] ?? null;
+
+        DB::transaction(function () use ($user, $eid) {
+            $this->kunci();
+            $u = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+
+            if ($eid && $u->roleName() !== 'PEGAWAI') {
+                throw ValidationException::withMessages(['employee_id' => 'Hanya akun berperan Pegawai yang bisa dihubungkan.']);
+            }
+            if ($eid && User::where('employee_id', $eid)->where('id', '!=', $u->id)->exists()) {
+                throw ValidationException::withMessages(['employee_id' => 'Pegawai ini sudah terhubung ke akun lain.']);
+            }
+
+            $lama = ['employee_id' => $u->employee_id];
+            $u->employee_id = $eid;
+            $u->save();
+            AuditService::catat('UPDATE', 'users', $u->id, $lama, ['employee_id' => $eid]);
+        });
+
+        return redirect()->route('pengguna.edit', $user)->with('status', 'Hubungan akun ke data pegawai disimpan.');
     }
 
     public function resetPassword(Request $request, User $user)

@@ -71,7 +71,8 @@
                     @endphp
                     <tr>
                         <td><strong>{{ $x->name }}</strong> <span class="chip">{{ $x->type === 'RELAWAN' ? 'Relawan' : 'Karyawan' }}</span>
-                            @if ($terkunci->has($x->id)) <span class="chip warn">Slip terbit</span> @endif</td>
+                            @if ($terkunci->has($x->id)) <span class="chip warn">Slip terbit</span> @endif
+                            @if ($a?->clock_in_at) <span class="chip {{ $a->clock_out_at ? '' : 'warn' }}">Masuk {{ $a->clock_in_at->timezone(config('app.timezone'))->format('H:i') }}@if ($a->clock_out_at) &middot; Pulang {{ $a->clock_out_at->timezone(config('app.timezone'))->format('H:i') }}@else &middot; belum pulang, isi status manual @endif</span> @endif</td>
                         <td>
                             <select name="rows[{{ $x->id }}][status]" data-status @disabled($kunci)>
                                 <option value="">&mdash; belum diisi &mdash;</option>

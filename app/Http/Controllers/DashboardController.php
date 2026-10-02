@@ -22,6 +22,9 @@ class DashboardController extends Controller
     public function index(Request $request, PiutangService $piutang, StokService $stok)
     {
         $user      = Auth::user();
+        if ($user->roleName() === 'PEGAWAI') {
+            return redirect()->route('absen.index');
+        }
         $manajemen = in_array(strtoupper((string) $user->role), ['ADMIN', 'MANAGER'], true);
         $pengawas  = $user->isPengawasKandang();
         $kasirId   = ($manajemen || $pengawas) ? null : $user->id; // kasir hanya melihat transaksinya sendiri

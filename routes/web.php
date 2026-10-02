@@ -12,6 +12,8 @@ use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\AbsenController;
+use App\Http\Middleware\BatasiPegawai;
 use App\Http\Controllers\KasbonController;
 use App\Http\Controllers\GajiController;
 use App\Http\Controllers\PengaturanBonusController;
@@ -37,7 +39,7 @@ Route::middleware('guest')->group(function () {
         ->name('login.attempt');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', BatasiPegawai::class])->group(function () {
     // Semua peran
     Route::get('/', fn () => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -143,6 +145,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{user}/ubah', [PenggunaController::class, 'edit'])->whereUuid('user')->name('edit');
         Route::put('/{user}', [PenggunaController::class, 'update'])->whereUuid('user')->name('update');
         Route::post('/{user}/password', [PenggunaController::class, 'resetPassword'])->whereUuid('user')->name('password');
+        Route::put('/{user}/pegawai', [PenggunaController::class, 'hubungkanPegawai'])->whereUuid('user')->name('pegawai');
     });
 
     // SDM & Gaji: khusus ADMIN, disembunyikan dari semua peran lain (dicek di controller)
@@ -183,6 +186,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/{payroll}/batal', [GajiController::class, 'batal'])->whereUuid('payroll')->name('batal');
         Route::delete('/{payroll}', [GajiController::class, 'hapus'])->whereUuid('payroll')->name('hapus');
         Route::get('/{payroll}/slip', [GajiController::class, 'slip'])->whereUuid('payroll')->name('slip');
+    });
+
+    Route::middleware(RoleMiddleware::class . ':PEGAWAI')->prefix('absen')->name('absen.')->group(function () {
+        Route::get('/', [AbsenController::class, 'index'])->name('index');
+        Route::post('/masuk', [AbsenController::class, 'masuk'])->name('masuk');
+        Route::post('/pulang', [AbsenController::class, 'pulang'])->name('pulang');
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

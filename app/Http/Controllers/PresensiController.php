@@ -112,7 +112,7 @@ class PresensiController extends Controller
 
                 $status = $r['status'] ?? null;
                 if (! $status) {
-                    $hapus += Attendance::where('employee_id', $id)->where('work_date', $t)->delete();
+                    $hapus += Attendance::where('employee_id', $id)->where('work_date', $t)->whereNull('clock_in_at')->delete();
                     continue;
                 }
 

@@ -11,7 +11,7 @@ class PengaturanBonusController extends Controller
 {
     use HanyaAdmin;
 
-    private const KUNCI = ['pool_tarif_per_kg', 'pool_bobot_karyawan', 'pool_bobot_relawan', 'bonus_kuota_bulanan'];
+    private const KUNCI = ['pool_tarif_per_kg', 'pool_bobot_karyawan', 'pool_bobot_relawan', 'bonus_kuota_bulanan', 'absen_min_jam_hadir'];
 
     public function edit()
     {
@@ -23,6 +23,7 @@ class PengaturanBonusController extends Controller
             'pool_bobot_karyawan' => (float) ($s['pool_bobot_karyawan'] ?? 1),
             'pool_bobot_relawan'  => (float) ($s['pool_bobot_relawan'] ?? 1),
             'bonus_kuota_bulanan' => (float) ($s['bonus_kuota_bulanan'] ?? 50000),
+            'absen_min_jam_hadir' => (float) ($s['absen_min_jam_hadir'] ?? 4),
         ]]);
     }
 
@@ -35,6 +36,7 @@ class PengaturanBonusController extends Controller
             'pool_bobot_karyawan' => ['required', 'numeric', 'min:0', 'max:10'],
             'pool_bobot_relawan'  => ['required', 'numeric', 'min:0', 'max:10'],
             'bonus_kuota_bulanan' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'absen_min_jam_hadir' => ['required', 'numeric', 'min:0', 'max:24'],
         ]);
 
         $lama = Setting::semua();

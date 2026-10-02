@@ -29,6 +29,10 @@
         <input type="number" name="bonus_kuota_bulanan" min="0" step="1" value="{{ old('bonus_kuota_bulanan', $s['bonus_kuota_bulanan']) }}" required style="padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;width:100%">
         <div class="muted" style="margin-top:.2rem">Terisi otomatis di slip saat draft dibuat, untuk semua karyawan dan relawan. Bonus penjualan bisa ditambahkan manual di slip.</div>
 
+        <label style="display:block;margin-top:.8rem"><strong>Jam kerja minimal untuk dihitung Hadir (jam)</strong></label>
+        <input type="number" name="absen_min_jam_hadir" min="0" max="24" step="0.25" value="{{ old('absen_min_jam_hadir', $s['absen_min_jam_hadir']) }}" required style="padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;width:100%">
+        <div class="muted" style="margin-top:.2rem">Absen pulang dengan durasi kurang dari ini tercatat Setengah hari.</div>
+
         <button type="submit" class="btn" style="margin-top:1rem">Simpan</button>
     </form>
 </div>

@@ -13,7 +13,8 @@
         $u = auth()->user();
         $menu = [
             'Utama' => [
-                ['t' => 'Dashboard', 'r' => 'dashboard', 'on' => ['dashboard'], 'ok' => true],
+                ['t' => 'Dashboard', 'r' => 'dashboard', 'on' => ['dashboard'], 'ok' => $u->roleName() !== 'PEGAWAI'],
+                ['t' => 'Absen', 'r' => 'absen.index', 'on' => ['absen.*'], 'ok' => $u->roleName() === 'PEGAWAI'],
             ],
             'Penjualan' => [
                 ['t' => 'Kasir', 'r' => 'kasir.create', 'on' => ['kasir.create'], 'ok' => $u->canWrite('kasir')],

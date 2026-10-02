@@ -80,4 +80,26 @@
     </form>
 </div>
 @endif
+@if ($user->exists && $user->role === 'PEGAWAI')
+@php
+    $semuaPegawai = \App\Models\Employee::where('is_active', true)->orderBy('name')->get();
+    $dipakai = \App\Models\User::whereNotNull('employee_id')->where('id', '!=', $user->id)->pluck('employee_id')->flip();
+@endphp
+<div class="card" style="max-width:560px">
+    <h3 style="margin-top:0">Hubungkan ke data pegawai</h3>
+    <div class="muted" style="margin-bottom:.6rem">Absen akun ini tercatat atas nama pegawai yang dipilih. Tanpa hubungan ini akun tidak bisa absen.</div>
+    <form method="POST" action="{{ route('pengguna.pegawai', $user) }}">
+        @csrf
+        @method('PUT')
+        <select name="employee_id">
+            <option value="">&mdash; belum terhubung &mdash;</option>
+            @foreach ($semuaPegawai as $pg)
+                @continue($dipakai->has($pg->id))
+                <option value="{{ $pg->id }}" @selected($user->employee_id === $pg->id)>{{ $pg->name }} ({{ $pg->type === 'RELAWAN' ? 'Relawan' : 'Karyawan' }})</option>
+            @endforeach
+        </select>
+        <button type="submit" class="btn">Simpan hubungan</button>
+    </form>
+</div>
+@endif
 @endsection

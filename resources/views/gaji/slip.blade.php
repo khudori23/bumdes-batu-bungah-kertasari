@@ -34,6 +34,7 @@
         .ttd .sp { height: 54px; display: flex; align-items: center; justify-content: center; } .ttd img { max-height: 54px; max-width: 100%; }
         .ttd .nama { font-weight: 700; border-top: 1px solid #0f172a; padding-top: 2px; margin: 0 6px; } .ttd .jab { color: #64748b; font-size: 10px; }
         .ft { margin-top: 12px; padding-top: 6px; border-top: 1px dashed #94a3b8; font-size: 9.5px; color: #64748b; text-align: center; }
+        /* hp-2e */ @media screen and (max-width:600px) { .slip { width:auto; min-height:0; margin:0; padding:14px; box-shadow:none; } .dua { grid-template-columns:1fr; } .wm { font-size:30px; } .bar { padding:.5rem .7rem; } .bar a, .bar button { min-height:40px; display:inline-flex; align-items:center; } }
         @media print {
             body { background: #fff; } .noprint { display: none !important; }
             .slip { margin: 0; box-shadow: none; width: auto; min-height: 0; padding: 0; }

@@ -87,3 +87,4 @@ th { font-size:.8rem; color:var(--muted); }
     .app-body { margin-left:0 !important; }
     main { max-width:none; margin:0; padding:0; }
 }
+/* hp-2e */ @media (max-width:900px) { body.sb-open { overflow:hidden; } .sb { overscroll-behavior:contain; } }

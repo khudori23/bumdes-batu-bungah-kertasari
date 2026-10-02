@@ -13,6 +13,7 @@
     .lr tbody tr:nth-child(even) { background: #f8fafc; }
     .lr tfoot td { font-weight: 700; background: #e2e8f0; }
     .lr .neg { color: #e11d48; } .lr .pos { color: #0f766e; } .lr .warn { color: #b45309; }
+    /* hp-2e */ @media (max-width:600px) { .lr h2 { font-size:1.15rem; } .lr form { width:100%; } .lr form input { flex:1; } .lr form .btn { min-height:44px; } }
     @media print { header, .noprint { display: none !important; } body { background: #fff; } main { max-width: none; margin: 0; } }
 </style>
 

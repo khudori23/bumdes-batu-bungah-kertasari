@@ -5,24 +5,7 @@
     $rendPeriode = $arus['produksi']['k'] > 0 ? $totalHasil / $arus['produksi']['k'] * 100 : null;
 @endphp
 
-<style>
-    .sk{color:#0f172a;margin-bottom:.8rem}
-    .sk-title{margin:1.2rem 0 .6rem;font-size:.82rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
-    .sk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin-bottom:.8rem}
-    .sk-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:1.05rem 1.15rem;box-shadow:0 1px 2px rgba(15,23,42,.04);margin-bottom:.8rem}
-    .sk-grid .sk-card{margin-bottom:0}
-    .sk-l{font-size:.78rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-    .sk-v{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;margin:.3rem 0 .2rem;font-variant-numeric:tabular-nums}
-    .sk-v small{font-size:.95rem;color:#64748b;font-weight:500}
-    .sk-m{color:#64748b;font-size:.78rem}
-    .sk-card h3{margin:0 0 .6rem;font-size:.82rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
-    .sk-t{width:100%;border-collapse:collapse;font-size:.88rem}
-    .sk-t th,.sk-t td{padding:.55rem .4rem;border-bottom:1px solid #eef2f6;text-align:left}
-    .sk-t th{font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-    .sk-t .r{text-align:right;font-variant-numeric:tabular-nums}
-    .sk-chip{display:inline-flex;font-size:.74rem;font-weight:600;padding:.1rem .5rem;border-radius:99px;background:#f1f5f9;color:#64748b}
-    .sk-chip.up{background:#ccfbf1;color:#0f766e}.sk-chip.down{background:#ffe4e6;color:#be123c}.sk-chip.warn{background:#fef3c7;color:#b45309}
-</style>
+
 
 <div class="sk">
     <div class="sk-title">Ayam hidup &middot; {{ $labelPeriode }}</div>

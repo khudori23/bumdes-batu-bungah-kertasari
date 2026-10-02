@@ -88,3 +88,4 @@ th { font-size:.8rem; color:var(--muted); }
     main { max-width:none; margin:0; padding:0; }
 }
 /* hp-2e */ @media (max-width:900px) { body.sb-open { overflow:hidden; } .sb { overscroll-behavior:contain; } }
+/* hp-2f */ @media (max-width:600px) { .gnav a { display:inline-flex; align-items:center; min-height:40px; } }

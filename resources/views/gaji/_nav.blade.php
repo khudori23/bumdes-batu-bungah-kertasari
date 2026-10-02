@@ -9,7 +9,7 @@
         ['Laba Rugi', route('gaji.labarugi'), request()->routeIs('gaji.labarugi')],
     ];
 @endphp
-<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">
+<div class="gnav" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">
     @foreach ($tabs as [$label, $url, $on])
         <a href="{{ $url }}" style="padding:.4rem .9rem;border-radius:99px;text-decoration:none;font-size:.88rem;border:1px solid var(--line);{{ $on ? 'background:var(--hdr);color:#fff;border-color:var(--hdr)' : 'background:#fff;color:#334155' }}">{{ $label }}</a>
     @endforeach

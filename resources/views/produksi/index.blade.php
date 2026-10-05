@@ -23,7 +23,7 @@
         @if (count($freezerOpsi) === 0)
             <p class="muted">
                 <strong>Belum ada freezer.</strong>
-                @if ($bolehFreezer)<a href="{{ route('freezer.index') }}">Tambahkan freezer dulu</a>@else Minta admin menambahkannya@endif
+                @if ($bolehFreezer)<a href="{{ route('freezer.index') }}">Tambahkan freezer dulu</a>@else Minta admin menambahkannya @endif
                 supaya umur simpan produk bisa dilacak.
             </p>
         @endif

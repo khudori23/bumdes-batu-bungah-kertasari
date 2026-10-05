@@ -11,19 +11,23 @@
         : $from->locale('id')->translatedFormat('d M') . ' - ' . $to->locale('id')->translatedFormat('d M Y');
 @endphp
 
-<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ @filemtime(public_path('css/dashboard.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard-v2.css') }}?v={{ @filemtime(public_path('css/dashboard-v2.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard-stok.css') }}?v={{ @filemtime(public_path('css/dashboard-stok.css')) }}">
 
-<div class="kd-head">
-    <div>
-        <h2>{{ $salam }}, {{ auth()->user()->name }}</h2>
-        <div class="muted" style="margin-top:.2rem">{{ $rentang }}</div>
+<div class="dx">
+    <div class="sk-hero">
+        <div>
+            <small>{{ $salam }}</small>
+            <h2>{{ auth()->user()->name }}</h2>
+            <div class="d">{{ $rentang }}</div>
+        </div>
+        <div class="dx-seg">
+            @foreach ($periodeList as $key => $label)
+                <a href="{{ route('dashboard', ['periode' => $key]) }}" class="{{ $periode === $key ? 'on' : '' }}">{{ $label }}</a>
+            @endforeach
+        </div>
     </div>
-    <div class="kd-seg">
-        @foreach ($periodeList as $key => $label)
-            <a href="{{ route('dashboard', ['periode' => $key]) }}" class="{{ $periode === $key ? 'on' : '' }}">{{ $label }}</a>
-        @endforeach
-    </div>
+
+    @include('dashboard._stok')
 </div>
-
-@include('dashboard._stok')
 @endsection

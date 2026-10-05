@@ -15,15 +15,30 @@ class ProdukController extends Controller
 {
     use HanyaAdmin;
 
+    /**
+     * Melihat daftar produk dan harga: admin, manager, dan kasir.
+     */
     private function bolehLihat(): void
     {
         $u = Auth::user();
-        abort_unless($u && ($u->isAdmin() || $u->isManager()), 403, 'Halaman ini hanya untuk admin dan manager.');
+        abort_unless(
+            $u && ($u->isAdmin() || $u->isManager() || $u->roleName() === 'KASIR'),
+            403,
+            'Anda tidak memiliki akses ke halaman ini.'
+        );
     }
 
+    /**
+     * Mengubah produk dan harga: admin dan kasir. Manager hanya melihat.
+     */
     private function bolehUbah(): void
     {
-        abort_unless(Auth::user()?->isAdmin(), 403, 'Hanya admin yang boleh mengubah produk dan harga.');
+        $u = Auth::user();
+        abort_unless(
+            $u && ($u->isAdmin() || $u->roleName() === 'KASIR'),
+            403,
+            'Anda tidak memiliki akses untuk mengubah produk dan harga.'
+        );
     }
 
     public function index()

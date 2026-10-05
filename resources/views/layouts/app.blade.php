@@ -32,7 +32,7 @@
                 ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang')],
             ],
             'Data & Laporan' => [
-                ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
+                ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager() || $u->roleName() === 'KASIR')],
                 ['t' => 'Pengeluaran', 'r' => 'pengeluaran.index', 'on' => ['pengeluaran.*'], 'ok' => $u->canView('pengeluaran')],
                 ['t' => 'Laporan', 'r' => 'laporan.index', 'on' => ['laporan.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
             ],

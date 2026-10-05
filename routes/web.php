@@ -115,8 +115,9 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
         Route::post('/produksi', [ProduksiController::class, 'store'])->name('produksi.store');
     });
 
-    // Produk & harga: ADMIN ubah, MANAGER hanya lihat. Kasir dan pengawas ditolak (403).
-    Route::middleware(RoleMiddleware::class)->prefix('produk')->name('produk.')->group(function () {
+    // Produk & harga: ADMIN dan KASIR boleh lihat + ubah, MANAGER hanya lihat. Pengawas ditolak (403).
+    // Pembatasan per peran dicek lagi di ProdukController (bolehLihat / bolehUbah).
+    Route::middleware(RoleMiddleware::class . ':KASIR')->prefix('produk')->name('produk.')->group(function () {
         Route::get('/', [ProdukController::class, 'index'])->name('index');
         Route::post('/', [ProdukController::class, 'store'])->name('store');
         Route::get('/{id}/ubah', [ProdukController::class, 'edit'])->whereUuid('id')->name('edit');

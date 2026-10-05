@@ -6,7 +6,7 @@
 @include('produk._galat')
 @php
     $rp = fn ($n) => 'Rp ' . number_format((float) $n, 0, ',', '.');
-    $admin = auth()->user()->isAdmin();
+    $bisaUbah = auth()->user()->isAdmin() || auth()->user()->roleName() === 'KASIR';
 @endphp
 
 <div class="card">
@@ -18,7 +18,7 @@
             <tr>
                 <th>Kode</th><th>Nama</th><th>Satuan</th>
                 @foreach ($tipe as $t)<th class="right">{{ $t->name }}</th>@endforeach
-                <th>Status</th>@if ($admin)<th></th>@endif
+                <th>Status</th>@if ($bisaUbah)<th></th>@endif
             </tr>
         </thead>
         <tbody>
@@ -32,17 +32,17 @@
                         <td class="right">{{ $h ? $rp($h->price) : '-' }}</td>
                     @endforeach
                     <td><span class="chip {{ $p->is_active ? 'up' : '' }}">{{ $p->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
-                    @if ($admin)<td><a href="{{ route('produk.edit', $p->id) }}">Ubah</a></td>@endif
+                    @if ($bisaUbah)<td><a href="{{ route('produk.edit', $p->id) }}">Ubah</a></td>@endif
                 </tr>
             @empty
-                <tr><td colspan="{{ 4 + $tipe->count() + ($admin ? 1 : 0) }}">Belum ada produk.</td></tr>
+                <tr><td colspan="{{ 4 + $tipe->count() + ($bisaUbah ? 1 : 0) }}">Belum ada produk.</td></tr>
             @endforelse
         </tbody>
     </table>
     </div>
 </div>
 
-@if ($admin)
+@if ($bisaUbah)
 <div class="card">
     <h3 style="margin-top:0">Tambah produk</h3>
     <form method="POST" action="{{ route('produk.store') }}">

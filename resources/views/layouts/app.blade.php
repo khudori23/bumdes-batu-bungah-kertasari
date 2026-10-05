@@ -18,7 +18,8 @@
             ],
             'Penjualan' => [
                 ['t' => 'Kasir', 'r' => 'kasir.create', 'on' => ['kasir.create'], 'ok' => $u->canWrite('kasir')],
-                ['t' => 'Riwayat', 'r' => 'kasir.index', 'on' => ['kasir.*'], 'not' => ['kasir.create'], 'ok' => $u->canView('kasir')],
+                ['t' => 'Riwayat', 'r' => 'kasir.index', 'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*'], 'ok' => $u->canView('kasir')],
+                ['t' => 'Pesanan Dapur', 'r' => 'kasir.dapur.index', 'on' => ['kasir.dapur.*'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Piutang', 'r' => 'piutang.index', 'on' => ['piutang.*'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Pelanggan', 'r' => 'pelanggan.index', 'on' => ['pelanggan.*'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Produksi', 'r' => 'produksi.index', 'on' => ['produksi.*'], 'ok' => $u->canView('produksi_input')],
@@ -92,7 +93,7 @@
         $bnAll = [
             ['t' => 'Beranda',  'r' => 'dashboard',            'on' => ['dashboard'],            'ok' => true, 'i' => 'home'],
             ['t' => 'Kasir',    'r' => 'kasir.create',         'on' => ['kasir.create'],         'ok' => $u->canWrite('kasir'), 'i' => 'cart'],
-            ['t' => 'Riwayat',  'r' => 'kasir.index',          'on' => ['kasir.*'], 'not' => ['kasir.create'], 'ok' => $u->canView('kasir'), 'i' => 'clock'],
+            ['t' => 'Riwayat',  'r' => 'kasir.index',          'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*'], 'ok' => $u->canView('kasir'), 'i' => 'clock'],
             ['t' => 'Pembelian','r' => 'pembelian.index',      'on' => ['pembelian.*', 'pemasok.*'], 'ok' => $u->canView('kandang'), 'i' => 'box'],
             ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang'), 'i' => 'out'],
             ['t' => 'Produksi', 'r' => 'produksi.index',       'on' => ['produksi.*'],           'ok' => $u->canView('produksi_input'), 'i' => 'fact'],

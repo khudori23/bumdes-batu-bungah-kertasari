@@ -56,6 +56,11 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
             Route::get('/', [KasirController::class, 'create'])->name('create');
             Route::post('/', [KasirController::class, 'store'])->name('store');
             Route::post('/pelanggan', [KasirController::class, 'simpanPelanggan'])->name('pelanggan.store');
+            Route::get('/dapur', [\App\Http\Controllers\KitchenOrderController::class, 'index'])->name('dapur.index');
+            Route::get('/dapur/baru', [\App\Http\Controllers\KitchenOrderController::class, 'create'])->name('dapur.create');
+            Route::post('/dapur', [\App\Http\Controllers\KitchenOrderController::class, 'store'])->name('dapur.store');
+            Route::get('/dapur/{order}', [\App\Http\Controllers\KitchenOrderController::class, 'show'])->whereUuid('order')->name('dapur.show');
+            Route::post('/dapur/{order}/batal', [\App\Http\Controllers\KitchenOrderController::class, 'void'])->whereUuid('order')->name('dapur.void');
             Route::get('/riwayat', [KasirController::class, 'index'])->name('index');
             Route::get('/{sale}', [KasirController::class, 'show'])->whereUuid('sale')->name('show');
             Route::post('/{sale}/void', [KasirController::class, 'void'])->whereUuid('sale')->name('void'); // khusus admin (dicek di controller)

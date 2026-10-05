@@ -33,6 +33,11 @@ class KitchenOrder extends Model
         return $this->belongsTo(ProductionBatch::class, 'production_batch_id');
     }
 
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by_id');

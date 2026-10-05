@@ -98,6 +98,11 @@ class StokService
         $adj = DB::table('stock_adjustments')
             ->selectRaw('product_id, sum(difference_qty) as d')->groupBy('product_id')->pluck('d', 'product_id');
 
+        $dapur = DB::table('kitchen_order_lines as l')
+            ->join('kitchen_orders as o', 'o.id', '=', 'l.kitchen_order_id')
+            ->where('o.status', '!=', 'VOIDED')
+            ->selectRaw('l.product_id, sum(l.quantity_kg) as qty')->groupBy('l.product_id')->pluck('qty', 'product_id');
+
         $opname = DB::table('stock_adjustments')
             ->orderByDesc('adjustment_date')->orderByDesc('created_at')->get()
             ->unique('product_id')->keyBy('product_id');
@@ -108,7 +113,7 @@ class StokService
                 'id'     => $p->id,
                 'name'   => $p->name,
                 'hasil'  => (float) ($hasilPeriode[$p->id] ?? 0),
-                'stok'   => round((float) (($hasilSemua[$p->id] ?? 0) + ($adj[$p->id] ?? 0) - ($jual[$p->id] ?? 0)), 2),
+                'stok'   => round((float) (($hasilSemua[$p->id] ?? 0) + ($adj[$p->id] ?? 0) - ($jual[$p->id] ?? 0) - ($dapur[$p->id] ?? 0)), 2),
                 'opname' => $opname[$p->id] ?? null,
             ]);
     }

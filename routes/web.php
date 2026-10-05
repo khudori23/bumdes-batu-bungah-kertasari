@@ -4,6 +4,7 @@ use App\Http\Controllers\AkunController;
 use App\Http\Controllers\AyamKeluarController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FreezerController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\MortalitasController;
 use App\Http\Controllers\OpnameAyamController;
@@ -123,6 +124,15 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
         Route::get('/{id}/ubah', [ProdukController::class, 'edit'])->whereUuid('id')->name('edit');
         Route::put('/{id}', [ProdukController::class, 'update'])->whereUuid('id')->name('update');
         Route::put('/{id}/harga', [ProdukController::class, 'harga'])->whereUuid('id')->name('harga');
+    });
+
+    // Freezer & batas simpan produk: ADMIN dan KASIR boleh lihat + ubah, MANAGER hanya lihat.
+    // Pembatasan per peran dicek lagi di FreezerController (bolehLihat / bolehUbah).
+    Route::middleware(RoleMiddleware::class . ':KASIR')->prefix('freezer')->name('freezer.')->group(function () {
+        Route::get('/', [FreezerController::class, 'index'])->name('index');
+        Route::post('/', [FreezerController::class, 'store'])->name('store');
+        Route::put('/batas', [FreezerController::class, 'batas'])->name('batas');
+        Route::put('/{id}', [FreezerController::class, 'update'])->whereUuid('id')->name('update');
     });
 
     // Pelanggan: ADMIN kelola, KASIR lihat + tambah, MANAGER hanya lihat. Pengawas ditolak.

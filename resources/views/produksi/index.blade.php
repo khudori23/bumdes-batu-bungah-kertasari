@@ -4,6 +4,10 @@
 
 @section('content')
 @include('layouts._errors')
+@php
+    $u = auth()->user();
+    $bolehFreezer = $u->isAdmin() || $u->isManager() || $u->isKasir();
+@endphp
 
 <div class="card">
     <h2 style="margin-top:0">Input hasil produksi</h2>
@@ -12,10 +16,18 @@
             Stok ayam hidup saat ini: <strong>{{ number_format($stok['ekor'], 0, ',', '.') }} ekor</strong>
             &middot; {{ number_format($stok['kg'], 1, ',', '.') }} kg.
         @endif
-        Isi hasil potong per item (kg). Boleh diisi beberapa kali dalam sehari.
+        Isi hasil potong per item (kg) dan pilih freezer penyimpanannya. Boleh diisi beberapa kali dalam sehari.
     </p>
 
     @if ($bolehTulis)
+        @if (count($freezerOpsi) === 0)
+            <p class="muted">
+                <strong>Belum ada freezer.</strong>
+                @if ($bolehFreezer)<a href="{{ route('freezer.index') }}">Tambahkan freezer dulu</a>@else Minta admin menambahkannya@endif
+                supaya umur simpan produk bisa dilacak.
+            </p>
+        @endif
+
         <form method="POST" action="{{ route('produksi.store') }}">
             @csrf
             <div style="max-width:240px">
@@ -24,7 +36,7 @@
             </div>
 
             <h3 style="margin:1.2rem 0 .2rem">Hasil potong per item</h3>
-            <p class="muted" style="margin:0 0 .6rem">Pilih produk dan isi berat (kg).</p>
+            <p class="muted" style="margin:0 0 .6rem">Pilih produk, isi berat (kg), lalu pilih freezer.</p>
             <div id="rows"></div>
             <div class="btn-row">
                 <button type="button" id="add" class="btn" style="background:#475569">+ Tambah baris</button>
@@ -32,23 +44,45 @@
             </div>
         </form>
 
+        @if ($bolehFreezer)
+            <p class="muted" style="margin-top:.8rem"><a href="{{ route('freezer.index') }}">Kelola freezer &amp; batas simpan &rarr;</a></p>
+        @endif
+
         <script>
         (function () {
             var produk = @json($produkOpsi);
+            var freezer = @json($freezerOpsi);
             var lama = @json(old('items', [[]]));
             var body = document.getElementById('rows');
             var n = 0;
+
+            function esc(s) {
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            function freezerTerakhir() {
+                var s = body.querySelectorAll('select[name$="[storage_location_id]"]');
+                return s.length ? s[s.length - 1].value : '';
+            }
 
             function baris(v) {
                 var i = n++;
                 var d = document.createElement('div');
                 d.className = 'ir two';
+                d.style.cssText = 'display:flex;flex-wrap:wrap;gap:.5rem;align-items:center';
+
                 var opsi = '<option value="">- pilih produk -</option>' + produk.map(function (p) {
-                    return '<option value="' + p.id + '"' + (v.product_id === p.id ? ' selected' : '') + '>' + p.name + '</option>';
+                    return '<option value="' + esc(p.id) + '"' + (v.product_id === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>';
                 }).join('');
+
+                var opsiF = '<option value="">- pilih freezer -</option>' + freezer.map(function (f) {
+                    return '<option value="' + esc(f.id) + '"' + (v.storage_location_id === f.id ? ' selected' : '') + '>' + esc(f.name) + '</option>';
+                }).join('');
+
                 d.innerHTML =
-                    '<select name="items[' + i + '][product_id]" required>' + opsi + '</select>' +
-                    '<input type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="Berat (kg)" name="items[' + i + '][weight_kg]" value="' + (v.weight_kg || '') + '" required>' +
+                    '<select name="items[' + i + '][product_id]" required style="flex:2 1 180px">' + opsi + '</select>' +
+                    '<input type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="Berat (kg)" name="items[' + i + '][weight_kg]" value="' + esc(v.weight_kg || '') + '" required style="flex:1 1 120px">' +
+                    (freezer.length ? '<select name="items[' + i + '][storage_location_id]" required style="flex:1 1 150px">' + opsiF + '</select>' : '') +
                     '<button type="button" class="ir-x" title="Hapus baris" aria-label="Hapus baris">&times;</button>';
                 d.querySelector('button').onclick = function () {
                     if (body.children.length > 1) d.remove();
@@ -57,7 +91,9 @@
             }
 
             (lama.length ? lama : [{}]).forEach(baris);
-            document.getElementById('add').onclick = function () { baris({}); };
+            document.getElementById('add').onclick = function () {
+                baris({ storage_location_id: freezerTerakhir() });
+            };
         })();
         </script>
     @else
@@ -98,7 +134,7 @@
                     @endif
                     <td data-label="Rincian"><span>
                         @foreach ($b->weighingRecords as $w)
-                            {{ $w->product?->name }}: <strong>{{ number_format($w->weight_kg, 2, ',', '.') }} kg</strong>@if (! $loop->last)<br>@endif
+                            {{ $w->product?->name }}: <strong>{{ number_format($w->weight_kg, 2, ',', '.') }} kg</strong>@if ($w->storageLocation) <small class="muted">({{ $w->storageLocation->name }})</small>@endif @if (! $loop->last)<br>@endif
                         @endforeach
                     </span></td>
                     <td data-label="Oleh">{{ $b->createdBy?->name }}</td>

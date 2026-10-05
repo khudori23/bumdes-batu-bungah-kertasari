@@ -77,11 +77,30 @@ class StokService
     }
 
     /**
+     * Status umur simpan: 'lewat' bila umur melebihi batas, 'dekat' pada 1 hari sebelum
+     * batas sampai tepat di batas, selainnya 'aman'.
+     */
+    public function statusUmur(int $umur, int $batas): string
+    {
+        if ($umur > $batas) {
+            return 'lewat';
+        }
+
+        return $umur >= max(1, $batas - 1) ? 'dekat' : 'aman';
+    }
+
+    /**
      * Stok hasil produksi per item (semua produk non-ayam-hidup, dalam kg).
      * 'hasil' = hasil produksi pada rentang tanggal; 'stok' = stok saat ini.
+     *
+     * Umur simpan dihitung FIFO: stok yang tersisa dianggap berasal dari hasil produksi
+     * terbaru (yang lama sudah keluar duluan). 'lot' = rincian sisa stok per freezer dan
+     * tanggal produksi, dari yang paling lama.
      */
     public function produk(Carbon $from, Carbon $to): Collection
     {
+        $today = Carbon::today();
+
         $hasilSemua = DB::table('weighing_records')
             ->selectRaw('product_id, sum(weight_kg) as kg')->groupBy('product_id')->pluck('kg', 'product_id');
 
@@ -107,14 +126,76 @@ class StokService
             ->orderByDesc('adjustment_date')->orderByDesc('created_at')->get()
             ->unique('product_id')->keyBy('product_id');
 
+        // Semua hasil timbang, terbaru dulu, dikelompokkan per produk.
+        $lotRows = DB::table('weighing_records as w')
+            ->leftJoin('production_batches as b', 'b.id', '=', 'w.batch_id')
+            ->leftJoin('storage_locations as f', 'f.id', '=', 'w.storage_location_id')
+            ->select('w.product_id', 'w.weight_kg', 'w.created_at', 'b.production_date', 'f.id as freezer_id', 'f.name as freezer_name')
+            ->get()
+            ->map(function ($r) {
+                $r->tgl = $r->production_date
+                    ? Carbon::parse(substr((string) $r->production_date, 0, 10))->startOfDay()
+                    : Carbon::parse($r->created_at)->timezone(config('app.timezone'))->startOfDay();
+
+                return $r;
+            })
+            ->sort(fn ($a, $b) => [$b->tgl->timestamp, (string) $b->created_at] <=> [$a->tgl->timestamp, (string) $a->created_at])
+            ->groupBy('product_id');
+
         return Product::where('is_active', true)->where('is_live_bird', false)
-            ->orderBy('name')->get(['id', 'code', 'name'])
-            ->map(fn ($p) => (object) [
-                'id'     => $p->id,
-                'name'   => $p->name,
-                'hasil'  => (float) ($hasilPeriode[$p->id] ?? 0),
-                'stok'   => round((float) (($hasilSemua[$p->id] ?? 0) + ($adj[$p->id] ?? 0) - ($jual[$p->id] ?? 0) - ($dapur[$p->id] ?? 0)), 2),
-                'opname' => $opname[$p->id] ?? null,
-            ]);
+            ->orderBy('name')->get(['id', 'code', 'name', 'max_storage_days'])
+            ->map(function ($p) use ($hasilSemua, $hasilPeriode, $jual, $adj, $dapur, $opname, $lotRows, $today) {
+                $stok = round((float) (($hasilSemua[$p->id] ?? 0) + ($adj[$p->id] ?? 0) - ($jual[$p->id] ?? 0) - ($dapur[$p->id] ?? 0)), 2);
+                $batas = max(1, (int) ($p->max_storage_days ?: 3));
+
+                $sisa = max(0.0, $stok);
+                $lot = [];
+
+                foreach ($lotRows->get($p->id, collect()) as $r) {
+                    if ($sisa <= 0.004) {
+                        break;
+                    }
+
+                    $kg = min($sisa, (float) $r->weight_kg);
+                    $sisa = round($sisa - $kg, 2);
+                    $umur = $r->tgl->lt($today) ? (int) abs($r->tgl->diffInDays($today)) : 0;
+                    $kunci = ($r->freezer_id ?? '-') . '|' . $r->tgl->toDateString();
+
+                    if (isset($lot[$kunci])) {
+                        $lot[$kunci]->kg = round($lot[$kunci]->kg + $kg, 2);
+                        continue;
+                    }
+
+                    $lot[$kunci] = (object) [
+                        'produk'     => $p->name,
+                        'batas'      => $batas,
+                        'freezer_id' => $r->freezer_id,
+                        'freezer'    => $r->freezer_name ?: 'Belum diatur',
+                        'tgl'        => $r->tgl,
+                        'kg'         => round($kg, 2),
+                        'umur'       => $umur,
+                        'status'     => $this->statusUmur($umur, $batas),
+                    ];
+                }
+
+                $lot = collect(array_values($lot))->sortByDesc('umur')->values();
+
+                $status = $lot->isEmpty()
+                    ? 'kosong'
+                    : ($lot->contains('status', 'lewat') ? 'lewat' : ($lot->contains('status', 'dekat') ? 'dekat' : 'aman'));
+
+                return (object) [
+                    'id'      => $p->id,
+                    'name'    => $p->name,
+                    'hasil'   => (float) ($hasilPeriode[$p->id] ?? 0),
+                    'stok'    => $stok,
+                    'opname'  => $opname[$p->id] ?? null,
+                    'batas'   => $batas,
+                    'lot'     => $lot,
+                    'umur'    => $lot->isEmpty() ? null : (int) $lot->max('umur'),
+                    'status'  => $status,
+                    'freezer' => $lot->pluck('freezer')->unique()->implode(', ') ?: '-',
+                ];
+            });
     }
 }

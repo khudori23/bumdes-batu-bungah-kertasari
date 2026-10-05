@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\Product;
 use App\Models\ProductionBatch;
+use App\Models\StorageLocation;
 use App\Models\WeighingRecord;
 use App\Services\StokService;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class ProduksiController extends Controller
         // Kasir tidak boleh melihat data ayam hidup (jumlah masuk, berat, rendemen)
         $lihatAyam = ! $user->isKasir();
 
-        $batches = ProductionBatch::with(['createdBy:id,name', 'weighingRecords.product:id,name'])
+        $batches = ProductionBatch::with(['createdBy:id,name', 'weighingRecords.product:id,name', 'weighingRecords.storageLocation:id,name'])
             ->when(! $lihatAyam, fn ($q) => $q->has('weighingRecords'))
             ->orderByDesc('production_date')->orderByDesc('created_at')
             ->limit(30)->get();
@@ -29,12 +30,15 @@ class ProduksiController extends Controller
         $produk = Product::where('is_active', true)->where('is_live_bird', false)
             ->orderBy('name')->get(['id', 'name']);
 
+        $freezer = StorageLocation::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
         return view('produksi.index', [
-            'batches'    => $batches,
-            'lihatAyam'  => $lihatAyam,
-            'stok'       => $lihatAyam ? $stok->ayamHidup() : null,
-            'produkOpsi' => $produk->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values(),
-            'bolehTulis' => $user->canWrite('produksi_input'),
+            'batches'     => $batches,
+            'lihatAyam'   => $lihatAyam,
+            'stok'        => $lihatAyam ? $stok->ayamHidup() : null,
+            'produkOpsi'  => $produk->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values(),
+            'freezerOpsi' => $freezer->map(fn ($f) => ['id' => $f->id, 'name' => $f->name])->values(),
+            'bolehTulis'  => $user->canWrite('produksi_input'),
         ]);
     }
 
@@ -42,11 +46,18 @@ class ProduksiController extends Controller
     {
         abort_unless(Auth::user()->canWrite('produksi_input'), 403);
 
+        $adaFreezer = StorageLocation::where('is_active', true)->exists();
+
         $data = $request->validate([
-            'production_date'    => ['required', 'date', 'before_or_equal:today'],
-            'items'              => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'uuid', 'exists:products,id'],
-            'items.*.weight_kg'  => ['required', 'numeric', 'min:0.01', 'max:1000000'],
+            'production_date'             => ['required', 'date', 'before_or_equal:today'],
+            'items'                       => ['required', 'array', 'min:1'],
+            'items.*.product_id'          => ['required', 'uuid', 'exists:products,id'],
+            'items.*.weight_kg'           => ['required', 'numeric', 'min:0.01', 'max:1000000'],
+            'items.*.storage_location_id' => [$adaFreezer ? 'required' : 'nullable', 'uuid', 'exists:storage_locations,id'],
+        ], [
+            'items.*.storage_location_id.required' => 'Pilih freezer untuk setiap baris.',
+            'items.*.storage_location_id.uuid'     => 'Freezer tidak valid. Muat ulang halaman.',
+            'items.*.storage_location_id.exists'   => 'Freezer tidak ditemukan. Muat ulang halaman.',
         ]);
 
         $ids = collect($data['items'])->pluck('product_id')->unique()->all();
@@ -54,6 +65,13 @@ class ProduksiController extends Controller
         if ($valid !== count($ids)) {
             throw ValidationException::withMessages([
                 'items' => 'Ada produk yang tidak valid atau tidak aktif. Muat ulang halaman.',
+            ]);
+        }
+
+        $freezerIds = collect($data['items'])->pluck('storage_location_id')->filter()->unique()->all();
+        if ($freezerIds && StorageLocation::whereIn('id', $freezerIds)->where('is_active', true)->count() !== count($freezerIds)) {
+            throw ValidationException::withMessages([
+                'items' => 'Ada freezer yang tidak aktif. Muat ulang halaman.',
             ]);
         }
 
@@ -91,10 +109,11 @@ class ProduksiController extends Controller
             foreach ($data['items'] as $row) {
                 $no++;
                 $batch->weighingRecords()->create([
-                    'receipt_number' => $rp . str_pad((string) $no, 4, '0', STR_PAD_LEFT),
-                    'product_id'     => $row['product_id'],
-                    'weight_kg'      => round((float) $row['weight_kg'], 2),
-                    'operator_id'    => Auth::id(),
+                    'receipt_number'      => $rp . str_pad((string) $no, 4, '0', STR_PAD_LEFT),
+                    'product_id'          => $row['product_id'],
+                    'storage_location_id' => $row['storage_location_id'] ?? null,
+                    'weight_kg'           => round((float) $row['weight_kg'], 2),
+                    'operator_id'         => Auth::id(),
                 ]);
             }
 

@@ -97,6 +97,43 @@
     </div>
 
     @unless (auth()->user()->isPengawasKandang())
+    @php
+        $lotWaspada = $stokProduk->flatMap(fn ($p) => $p->lot)
+            ->filter(fn ($l) => $l->status !== 'aman')->sortByDesc('umur')->values();
+        $jmlLewat = $lotWaspada->where('status', 'lewat')->count();
+        $stLabel = ['lewat' => 'Lewat batas', 'dekat' => 'Hampir batas'];
+        $stChip = ['lewat' => 'bad', 'dekat' => 'warn'];
+    @endphp
+    <div class="sk-h">
+        <h3>Umur simpan produk</h3>
+        @if ($jmlLewat > 0)<span class="sk-badge">{{ $jmlLewat }} lewat batas</span>@endif
+    </div>
+    <div class="sk-panel">
+        @if ($lotWaspada->isEmpty())
+            <div class="sk-ok">&#10003; Semua stok masih dalam batas simpan</div>
+        @else
+            <table class="sk-t">
+                <thead>
+                    <tr><th>Produk</th><th>Freezer</th><th class="r">Jumlah (kg)</th><th>Tanggal produksi</th><th class="r">Umur</th><th class="r">Batas</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($lotWaspada as $l)
+                        <tr>
+                            <td class="sk-name" data-label="Produk">{{ $l->produk }}</td>
+                            <td data-label="Freezer">{{ $l->freezer }}</td>
+                            <td class="r" data-label="Jumlah (kg)">{{ $fm($l->kg, 2) }}</td>
+                            <td data-label="Tanggal produksi">{{ $l->tgl->format('d/m/Y') }}</td>
+                            <td class="r" data-label="Umur">{{ $l->umur }} hari</td>
+                            <td class="r" data-label="Batas">{{ $l->batas }} hari</td>
+                            <td data-label="Status"><span class="sk-chip {{ $stChip[$l->status] }}">{{ $stLabel[$l->status] }}</span></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+        <div class="sk-s" style="padding:.6rem .2rem 0"><a href="{{ route('freezer.index') }}">Atur freezer &amp; batas simpan &rarr;</a></div>
+    </div>
+
     <div class="sk-h"><h3>Hasil produksi</h3><span class="sk-badge">{{ $labelPeriode }}</span></div>
     <div class="sk-panel">
         <details class="sk-fold" open>

@@ -29,3 +29,5 @@ Thumbs.db
 /storage/backup-*
 
 /.env.testing
+
+data.sql

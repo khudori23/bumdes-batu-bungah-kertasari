@@ -96,7 +96,7 @@
         </details>
     </div>
 
-    @unless (auth()->user()->role === 'pengawas')
+    @unless (auth()->user()->isPengawasKandang())
     <div class="sk-h"><h3>Hasil produksi</h3><span class="sk-badge">{{ $labelPeriode }}</span></div>
     <div class="sk-panel">
         <details class="sk-fold" open>

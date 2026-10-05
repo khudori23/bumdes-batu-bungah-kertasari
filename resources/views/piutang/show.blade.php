@@ -25,7 +25,7 @@
                 {{ $terlambat->count() }} nota lewat jatuh tempo ({{ $rp($terlambat->sum('sisa')) }}),
                 tertua {{ $terlambat->max('terlambat_hari') }} hari
             </div>
-        @if ($punyaHutang && strtoupper((string) auth()->user()->role) !== 'MANAGER')
+        @elseif ($punyaHutang && strtoupper((string) auth()->user()->role) !== 'MANAGER')
             <div style="margin-top:.3rem;font-size:.85rem;color:#64748b">Belum ada nota yang lewat jatuh tempo.</div>
         @else
             <div style="margin-top:.3rem;font-size:.85rem;color:#0d9488;font-weight:600">Semua nota lunas.</div>

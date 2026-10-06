@@ -64,13 +64,13 @@ class PengeluaranController extends Controller
         $kasir = $u->isKasir();
 
         $data = $request->validate([
-            'expense_date' => $kasir ? ['nullable'] : ['required', 'date', 'before_or_equal:today'],
+            'expense_date' => \App\Support\Pencatatan::aturan(false),
             'category'     => ['required', Rule::in($this->kategoriBoleh())],
             'amount'       => ['required', 'numeric', 'min:1', 'max:999999999999'],
             'description'  => ['nullable', 'string', 'max:255'],
         ]);
 
-        $tanggal = $kasir ? now()->toDateString() : $data['expense_date'];
+        $tanggal = $data['expense_date'] ?? now()->toDateString();
 
         $expense = Expense::create([
             'expense_date'   => $tanggal,

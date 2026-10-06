@@ -36,7 +36,7 @@ class OpnameAyamController extends Controller
         abort_unless(Auth::user()->canWrite('kandang'), 403);
 
         $data = $request->validate([
-            'opname_date'  => ['required', 'date', 'before_or_equal:today'],
+            'opname_date'  => \App\Support\Pencatatan::aturan(),
             'actual_birds' => ['required', 'integer', 'min:0', 'max:1000000'],
             'actual_kg'    => ['required', 'numeric', 'min:0', 'max:10000000'],
             'reason'       => ['nullable', 'string', 'max:255'],

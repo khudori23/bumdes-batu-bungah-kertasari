@@ -26,7 +26,7 @@
             @unless ($hanyaSendiri)
             <div>
                 <label for="expense_date">Tanggal</label>
-                <input type="date" id="expense_date" name="expense_date" value="{{ old('expense_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                <input type="date" id="expense_date" name="expense_date" value="{{ old('expense_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
             </div>
             @endunless
             <div>

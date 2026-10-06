@@ -20,7 +20,7 @@
             <div class="fgrid">
                 <div>
                     <label>Tanggal opname</label>
-                    <input type="date" name="opname_date" value="{{ old('opname_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                    <input type="date" name="opname_date" value="{{ old('opname_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
                 </div>
                 <div>
                     <label>Jumlah fisik (ekor)</label>
@@ -85,7 +85,7 @@
             <div class="fgrid">
                 <div>
                     <label>Tanggal</label>
-                    <input type="date" name="record_date" value="{{ old('record_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                    <input type="date" name="record_date" value="{{ old('record_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
                 </div>
                 <div>
                     <label>Jumlah (ekor)</label>

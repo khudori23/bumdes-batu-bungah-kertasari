@@ -52,7 +52,11 @@
                 </div>
                 @error('payment_method') <div class="err">{{ $message }}</div> @enderror
 
-                <label for="reference_number">No. referensi (opsional)</label>
+                <label for="payment_date">Tanggal pembayaran</label>
+                    <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
+                    @error('payment_date') <div class="err">{{ $message }}</div> @enderror
+
+                    <label for="reference_number">No. referensi (opsional)</label>
                 <input type="text" name="reference_number" id="reference_number" maxlength="100" value="{{ old('reference_number') }}">
                 @error('reference_number') <div class="err">{{ $message }}</div> @enderror
 

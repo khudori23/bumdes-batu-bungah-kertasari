@@ -33,7 +33,7 @@ class OpnameProdukController extends Controller
         abort_unless(Auth::user()->canWrite('opname_hasil'), 403);
 
         $data = $request->validate([
-            'adjustment_date' => ['required', 'date', 'before_or_equal:today'],
+            'adjustment_date' => \App\Support\Pencatatan::aturan(),
             'fisik'           => ['required', 'array'],
             'fisik.*'         => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'alasan'          => ['nullable', 'array'],

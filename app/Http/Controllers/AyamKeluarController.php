@@ -49,7 +49,7 @@ class AyamKeluarController extends Controller
         abort_unless(Auth::user()->canWrite('kandang'), 403);
 
         $data = $request->validate([
-            'production_date' => ['required', 'date', 'before_or_equal:today'],
+            'production_date' => \App\Support\Pencatatan::aturan(),
             'input_birds'     => ['required', 'integer', 'min:1', 'max:1000000'],
             'input_weight_kg' => ['required', 'numeric', 'min:0.01', 'max:1000000'],
             'notes'           => ['nullable', 'string', 'max:255'],

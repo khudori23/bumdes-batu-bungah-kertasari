@@ -28,6 +28,8 @@
     </div>
 
     <section class="langkah card" id="s1">
+        <div class="lbl2">Tanggal transaksi</div>
+        <input type="date" name="sale_date" id="sale_date" value="{{ old('sale_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required style="margin-bottom:.8rem">
         <div id="slot1">
             <div id="blok-pel">
                 <div class="lbl2">Nama pembeli</div>

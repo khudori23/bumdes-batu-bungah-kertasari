@@ -23,7 +23,7 @@ class MortalitasController extends Controller
         abort_unless(Auth::user()->canWrite('kandang'), 403);
 
         $data = $request->validate([
-            'record_date' => ['required', 'date', 'before_or_equal:today'],
+            'record_date' => \App\Support\Pencatatan::aturan(),
             'birds'       => ['required', 'integer', 'min:1', 'max:100000'],
             'weight_kg'   => ['required', 'numeric', 'min:0', 'max:100000'],
             'cause'       => ['nullable', 'string', 'max:100'],

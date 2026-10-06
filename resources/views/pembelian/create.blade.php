@@ -46,7 +46,7 @@
                 <div>
                     <label for="purchase_date">Tanggal pembelian</label>
                     <input type="date" id="purchase_date" name="purchase_date"
-                           value="{{ old('purchase_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                           value="{{ old('purchase_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
                 </div>
                 <div>
                     <label for="total_birds">Jumlah ayam (ekor)</label>

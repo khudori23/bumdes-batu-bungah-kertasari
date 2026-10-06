@@ -69,11 +69,13 @@ class PiutangController extends Controller
             'amount'           => ['required', 'numeric', 'min:0.01'],
             'payment_method'   => ['required', 'in:CASH,TRANSFER'],
             'reference_number' => ['nullable', 'string', 'max:100'],
+            'payment_date'     => \App\Support\Pencatatan::aturan(false),
         ]);
 
         $jumlah = round((float) $data['amount'], 2);
+        $tgl = \App\Support\Pencatatan::tanggal($data['payment_date'] ?? null);
 
-        $sisa = DB::transaction(function () use ($customer, $piutang, $data, $jumlah) {
+        $sisa = DB::transaction(function () use ($customer, $piutang, $data, $jumlah, $tgl) {
             // Kunci per pelanggan: cek saldo dan pencatatan terjadi tanpa disela transaksi lain
             DB::select('select pg_advisory_xact_lock(?)', [(int) crc32('cust_' . $customer->id)]);
 
@@ -94,9 +96,7 @@ class PiutangController extends Controller
                 $jumlah,
                 $data['payment_method'],
                 $data['reference_number'] ?? null,
-                Auth::id(),
-                null
-            );
+                Auth::id(), null, $tgl);
 
             // Pengaman: semua uang harus tercatat. Kalau tidak, batalkan seluruh transaksi.
             if (abs($teralokasi - $jumlah) > 0.01) {
@@ -104,6 +104,8 @@ class PiutangController extends Controller
                     'amount' => 'Pembayaran tidak dapat dialokasikan penuh. Muat ulang halaman lalu coba lagi.',
                 ]);
             }
+
+            \App\Support\Pencatatan::catatMundur('payments', (string) $customer->id, $tgl, ['jumlah' => $jumlah]);
 
             return $piutang->saldo($customer->id);
         });

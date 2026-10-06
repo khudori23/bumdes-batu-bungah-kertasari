@@ -32,7 +32,7 @@
             @csrf
             <div style="max-width:240px">
                 <label>Tanggal produksi</label>
-                <input type="date" name="production_date" value="{{ old('production_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                <input type="date" name="production_date" value="{{ old('production_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
             </div>
 
             <h3 style="margin:1.2rem 0 .2rem">Hasil potong per item</h3>

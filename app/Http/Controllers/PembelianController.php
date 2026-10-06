@@ -81,7 +81,7 @@ class PembelianController extends Controller
 
         $data = $request->validate([
             'supplier_id'       => ['bail', 'required', 'uuid', 'exists:suppliers,id'],
-            'purchase_date'     => ['required', 'date', 'before_or_equal:today'],
+            'purchase_date'     => \App\Support\Pencatatan::aturan(),
             'total_birds'       => ['required', 'integer', 'min:1', 'max:1000000'],
             'total_weight_kg'   => ['required', 'numeric', 'min:0.01', 'max:100000'],
             'unit_price_per_kg' => ['required', 'numeric', 'min:1', 'max:9999999'],

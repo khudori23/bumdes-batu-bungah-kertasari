@@ -72,6 +72,7 @@ class KasirController extends Controller
     {
         $data = $request->validate([
             'customer_type_id'   => ['required', 'exists:customer_types,id'],
+            'sale_date'          => \App\Support\Pencatatan::aturan(false),
             'customer_id'        => ['nullable', 'exists:customers,id'],
             'customer_name'      => ['nullable', 'string', 'max:100'],
             'items'              => ['required', 'array', 'min:1'],
@@ -160,6 +161,7 @@ class KasirController extends Controller
         $metode = $data['payment_method'];
         $paid   = round((float) ($data['amount_paid'] ?? 0), 2);
         $tempo  = (int) ($data['due_days'] ?? config('kasir.tempo_hari', 7));
+        $tglJual = \App\Support\Pencatatan::tanggal($data['sale_date'] ?? null);
 
         $nama = trim((string) ($data['customer_name'] ?? ''));
         $adaNama = $nama !== '' && mb_strtolower($nama) !== 'umum';
@@ -178,9 +180,9 @@ class KasirController extends Controller
         }
 
         [$sale, $kembalian, $sisaHutang] = DB::transaction(
-            function () use ($data, $lines, $subtotal, $discount, $total, $metode, $paid, $nama, $adaNama, $tempo, $piutang, $stok, $ekorHidup) {
+            function () use ($data, $lines, $subtotal, $discount, $total, $metode, $paid, $nama, $adaNama, $tempo, $piutang, $stok, $ekorHidup, $tglJual) {
                 $now   = now();
-                $today = $now->toDateString();
+                $today = $tglJual->toDateString();
 
                 // Urutan kunci selalu: nomor nota -> nama pelanggan -> id pelanggan -> stok ayam hidup
                 $this->kunci('sale_number_' . $today);
@@ -230,7 +232,7 @@ class KasirController extends Controller
                 $dibayar = round(min($paid, $tagihan), 2);
 
                 // Nomor nota: ambil nomor terakhir hari ini lalu tambah satu
-                $prefix   = 'INV-' . $now->format('Ymd') . '-';
+                $prefix   = 'INV-' . $tglJual->format('Ymd') . '-';
                 $terakhir = Sale::where('sale_number', 'like', $prefix . '%')->max('sale_number');
                 $urut     = $terakhir ? ((int) substr($terakhir, strlen($prefix))) + 1 : 1;
                 $number   = $prefix . str_pad((string) $urut, 4, '0', STR_PAD_LEFT);
@@ -238,7 +240,7 @@ class KasirController extends Controller
                 $sale = Sale::create([
                     'sale_number'      => $number,
                     'sale_date'        => $today,
-                    'due_date'         => $customer ? $now->copy()->addDays($tempo)->toDateString() : null,
+                    'due_date'         => $customer ? $tglJual->copy()->addDays($tempo)->toDateString() : null,
                     'customer_id'      => $customer?->id,
                     'customer_name'    => $customer?->name ?? 'Umum',
                     'customer_type_id' => $data['customer_type_id'],
@@ -267,9 +269,7 @@ class KasirController extends Controller
                             $dibayar,
                             $metodeBayar,
                             $data['reference_number'] ?? null,
-                            Auth::id(),
-                            $sale->id
-                        );
+                            Auth::id(), $sale->id, $tglJual);
                     } else {
                         Payment::create([
                             'sale_id'            => $sale->id,
@@ -278,6 +278,7 @@ class KasirController extends Controller
                             'reference_number'   => $data['reference_number'] ?? null,
                             'cashier_id'         => Auth::id(),
                             'settlement_sale_id' => $sale->id,
+                            'created_at'         => \App\Support\Pencatatan::waktu($tglJual),
                         ]);
                         $teralokasi = $dibayar;
                     }
@@ -296,6 +297,8 @@ class KasirController extends Controller
                     'balance_after'    => $sisaHutang,
                     'balance_due_date' => $tertua,
                 ]);
+
+                \App\Support\Pencatatan::catatMundur('sales', (string) $sale->id, $tglJual, ['sale_number' => $sale->sale_number]);
 
                 return [$sale, $kembalian, $sisaHutang];
             }

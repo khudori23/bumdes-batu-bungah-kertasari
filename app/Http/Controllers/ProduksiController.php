@@ -49,7 +49,7 @@ class ProduksiController extends Controller
         $adaFreezer = StorageLocation::where('is_active', true)->exists();
 
         $data = $request->validate([
-            'production_date'             => ['required', 'date', 'before_or_equal:today'],
+            'production_date'             => \App\Support\Pencatatan::aturan(),
             'items'                       => ['required', 'array', 'min:1'],
             'items.*.product_id'          => ['required', 'uuid', 'exists:products,id'],
             'items.*.weight_kg'           => ['required', 'numeric', 'min:0.01', 'max:1000000'],

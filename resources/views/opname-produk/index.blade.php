@@ -102,7 +102,7 @@
         <div class="opn-tools">
             <div>
                 <label for="opnTgl">Tanggal opname</label>
-                <input id="opnTgl" type="date" name="adjustment_date" value="{{ old('adjustment_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                <input id="opnTgl" type="date" name="adjustment_date" value="{{ old('adjustment_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
             </div>
             <div>
                 <label for="opnCari">Cari produk</label>

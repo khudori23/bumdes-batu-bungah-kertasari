@@ -50,7 +50,7 @@ class KitchenOrderController extends Controller
         abort_unless(Auth::user()->canWrite('kasir'), 403);
 
         $data = $request->validate([
-            'order_date'           => ['required', 'date', 'before_or_equal:today'],
+            'order_date'           => \App\Support\Pencatatan::aturan(),
             'customer_id'          => ['required', 'uuid', 'exists:customers,id'],
             'live_weight_kg'       => ['required', 'numeric', 'min:0.01', 'max:1000000'],
             'price_per_kg'         => ['required', 'numeric', 'min:0', 'max:100000000'],
@@ -76,7 +76,7 @@ class KitchenOrderController extends Controller
 
             // Urutan kunci: nomor pesanan -> nomor nota -> pelanggan (sama dengan kasir)
             $stok->kunci('dapur_number_' . $ymd);
-            $stok->kunci('sale_number_' . $now->toDateString());
+            $stok->kunci('sale_number_' . $tanggal->toDateString());
             $stok->kunci('cust_' . $data['customer_id']);
 
             $customer = Customer::findOrFail($data['customer_id']);
@@ -88,7 +88,7 @@ class KitchenOrderController extends Controller
             $hutangLama = $piutang->saldo($customer->id);
 
             // Nomor nota (format sama dengan kasir)
-            $prefixInv = 'INV-' . $now->format('Ymd') . '-';
+            $prefixInv = 'INV-' . $tanggal->format('Ymd') . '-';
             $terakhir  = Sale::where('sale_number', 'like', $prefixInv . '%')->max('sale_number');
             $urutInv   = $terakhir ? ((int) substr($terakhir, strlen($prefixInv))) + 1 : 1;
             $nomorNota = $prefixInv . str_pad((string) $urutInv, 4, '0', STR_PAD_LEFT);

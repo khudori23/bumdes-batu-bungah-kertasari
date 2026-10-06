@@ -33,7 +33,7 @@
         <div class="dp-grid">
             <div>
                 <label for="order_date">Tanggal</label>
-                <input type="date" id="order_date" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                <input type="date" id="order_date" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" min="{{ \App\Support\Pencatatan::mulai() }}" max="{{ now()->toDateString() }}" required>
             </div>
             <div>
                 <label for="customer_id">Ditagih ke</label>

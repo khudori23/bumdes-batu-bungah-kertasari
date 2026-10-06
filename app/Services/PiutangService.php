@@ -65,6 +65,7 @@ class PiutangService
         return $this->dasar()
             ->when($customerId, fn ($q) => $q->where('s.customer_id', $customerId))
             ->whereRaw('(s.total_amount - coalesce(p.paid, 0)) > 0.004')
+            ->orderBy('s.sale_date')
             ->orderBy('s.created_at')
             ->orderBy('s.sale_number')
             ->selectRaw("s.id, s.customer_id, s.customer_name, s.sale_number, s.sale_date, s.total_amount, (s.total_amount - coalesce(p.paid, 0)) as sisa, coalesce(s.due_date, s.sale_date + {$tempo}) as jatuh_tempo")
@@ -125,7 +126,8 @@ class PiutangService
         string $metode,
         ?string $referensi,
         string $kasirId,
-        ?string $notaPenerimaId = null
+        ?string $notaPenerimaId = null,
+        ?Carbon $tanggal = null
     ): float {
         $sisaUang = round($jumlah, 2);
 
@@ -133,7 +135,7 @@ class PiutangService
             return 0.0;
         }
 
-        return DB::transaction(function () use ($customerId, $sisaUang, $metode, $referensi, $kasirId, $notaPenerimaId) {
+        return DB::transaction(function () use ($customerId, $sisaUang, $metode, $referensi, $kasirId, $notaPenerimaId, $tanggal) {
             // Kunci yang sama dengan KasirController (boleh diambil ulang dalam sesi yang sama)
             DB::select('select pg_advisory_xact_lock(?)', [(int) crc32('cust_' . $customerId)]);
 
@@ -153,6 +155,7 @@ class PiutangService
                     'reference_number'   => $referensi,
                     'cashier_id'         => $kasirId,
                     'settlement_sale_id' => $notaPenerimaId,
+                    'created_at'         => \App\Support\Pencatatan::waktu($tanggal, $nota->sale_date),
                 ]);
 
                 $sisaUang   = round($sisaUang - $bagian, 2);

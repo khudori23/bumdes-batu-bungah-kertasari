@@ -212,3 +212,6 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+Route::middleware('auth')->delete('/produksi/{weighingRecord}/hapus', \App\Http\Controllers\DeleteWeighingRecordController::class)->name('produksi.hapus');
+
+Route::middleware('auth')->delete('/produksi/batch/{productionBatch}/hapus', \App\Http\Controllers\DeleteProductionBatchController::class)->name('produksi.batch.hapus');

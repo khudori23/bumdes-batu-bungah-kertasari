@@ -110,7 +110,7 @@
                 @if ($lihatAyam)<th class="right">Masuk</th>@endif
                 <th class="right">Hasil (kg)</th>
                 @if ($lihatAyam)<th class="right">Rendemen</th>@endif
-                <th>Rincian hasil</th><th>Oleh</th>
+                <th>Rincian hasil</th><th>Oleh</th><th></th>
             </tr>
         </thead>
         <tbody>
@@ -138,9 +138,19 @@
                         @endforeach
                     </span></td>
                     <td data-label="Oleh">{{ $b->createdBy?->name }}</td>
+                    <td data-label="Aksi">
+                        @if (in_array(auth()->user()->roleName(), [\App\Models\User::ROLE_ADMIN, \App\Models\User::ROLE_KASIR], true))
+                            <form method="POST" action="{{ route('produksi.batch.hapus', $b) }}"
+                                  onsubmit="return confirm('Hapus batch {{ $b->batch_number }} beserta semua hasil timbangnya? Stok akan ikut dikoreksi dan tidak bisa dikembalikan.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit">Hapus</button>
+                            </form>
+                        @endif
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="muted">Belum ada data produksi.</td></tr>
+                <tr><td colspan="7" class="muted">Belum ada data produksi.</td></tr>
             @endforelse
         </tbody>
     </table>

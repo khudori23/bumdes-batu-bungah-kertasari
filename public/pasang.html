@@ -4,29 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pasang BUMDESa Batu Bungah Kertasari</title>
+<meta name="description" content="Pasang aplikasi BUMDESa Batu Bungah Kertasari di HP Anda. Ketuk link, lalu tekan tombol Pasang.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BUMDESa Batu Bungah Kertasari">
+<meta property="og:description" content="Ketuk untuk memasang aplikasi di HP Anda.">
+<meta property="og:image" content="https://bumdes-batu-bungah-kertasari-production-zlwnsq.laravel.cloud/icons/icon-512.png">
+<meta property="og:url" content="https://bumdes-batu-bungah-kertasari-production-zlwnsq.laravel.cloud/pasang.html">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#15803d">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <style>
   body{font-family:system-ui,sans-serif;margin:0;background:#f8fafc;color:#0f172a;padding:1.25rem}
   .kotak{max-width:30rem;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1.5rem}
   img{width:5rem;height:5rem;border-radius:1rem;display:block;margin:0 auto 1rem}
   h1{font-size:1.25rem;text-align:center;margin:.25rem 0 1rem}
-  a.tombol{display:block;text-align:center;background:#15803d;color:#fff;text-decoration:none;padding:.9rem;border-radius:.7rem;font-size:1.05rem;margin:1rem 0}
+  button,a.tombol{display:block;width:100%;box-sizing:border-box;text-align:center;border:0;background:#15803d;color:#fff;text-decoration:none;padding:.9rem;border-radius:.7rem;font-size:1.05rem;margin:1rem 0;cursor:pointer}
+  a.sekunder{background:#e2e8f0;color:#0f172a}
+  #btnPasang{display:none}
   ol{padding-left:1.2rem;line-height:1.6}
   .cat{font-size:.9rem;color:#475569;background:#f1f5f9;border-radius:.6rem;padding:.8rem}
+  #ok{display:none;text-align:center;color:#15803d;font-weight:600}
 </style>
 </head>
 <body>
   <div class="kotak">
-    <img src="/icons/icon-192.png" alt="Logo BUMDes">
+    <img src="/icons/icon-192.png" alt="Logo">
     <h1>BUMDESa Batu Bungah Kertasari</h1>
-    <a class="tombol" href="/unduh/bumdes-ayam.apk" download>Unduh Aplikasi (Android)</a>
+    <button id="btnPasang" type="button">Pasang Aplikasi</button>
+    <p id="ok">Aplikasi sudah terpasang. Buka dari layar utama HP.</p>
+    <p><b>Kalau tombol hijau tidak muncul:</b></p>
     <ol>
-      <li>Tekan tombol hijau di atas. Kalau Chrome bertanya "File jenis ini dapat membahayakan", pilih <b>Tetap unduh</b>.</li>
-      <li>Setelah selesai, buka file yang diunduh.</li>
-      <li>Kalau diminta, izinkan <b>Pasang dari sumber ini</b> untuk Chrome, lalu kembali dan tekan <b>Pasang</b>.</li>
-      <li>Kalau muncul peringatan Play Protect, pilih <b>Tetap pasang</b>.</li>
-      <li>Buka aplikasi dari layar utama, lalu login dengan akun masing-masing.</li>
+      <li>Pastikan link ini dibuka di <b>Chrome</b>. Kalau terbuka di dalam WhatsApp, tekan titik tiga (&#8942;) lalu <b>Buka di Chrome</b>.</li>
+      <li>Di Chrome, tekan titik tiga (&#8942;) di pojok kanan atas.</li>
+      <li>Pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>, lalu <b>Instal</b>.</li>
+      <li>Buka aplikasi dari ikon di layar utama dan login dengan akun masing-masing.</li>
     </ol>
-    <p class="cat">Peringatan di atas muncul karena aplikasi ini dibagikan langsung, bukan lewat Play Store. Pasang hanya dari link resmi BUMDes.</p>
+    <p class="cat"><b>iPhone:</b> buka link ini di Safari, tekan tombol Bagikan, lalu <b>Tambah ke Layar Utama</b>.</p>
+    <a class="tombol sekunder" href="/">Buka tanpa memasang</a>
   </div>
+<script>
+  var dp = null, btn = document.getElementById('btnPasang');
+  if (window.matchMedia('(display-mode: standalone)').matches) { location.replace('/'); }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dp = e; btn.style.display = 'block'; });
+  btn.addEventListener('click', function () {
+    if (!dp) return;
+    dp.prompt();
+    dp.userChoice.then(function () { dp = null; btn.style.display = 'none'; });
+  });
+  window.addEventListener('appinstalled', function () { btn.style.display = 'none'; document.getElementById('ok').style.display = 'block'; });
+  if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); }); }
+</script>
 </body>
 </html>

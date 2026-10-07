@@ -7,6 +7,11 @@
     @if ($set['favicon_path'])<link rel="icon" href="{{ asset('storage/' . $set['favicon_path']) }}">@endif
     <style>:root { --hdr:{{ $set['warna_header'] }}; --accent:{{ $set['warna_aksen'] }}; }</style>
     <link rel="stylesheet" href="{{ asset('css/ui.css') }}?v={{ @filemtime(public_path('css/ui.css')) }}">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#15803d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body class="{{ request()->routeIs('kasir.create') ? 'no-bn' : '' }}">
     @php
@@ -155,5 +160,10 @@
     })();
     </script>
     @include('partials.kembali')
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); });
+        }
+    </script>
 </body>
 </html>

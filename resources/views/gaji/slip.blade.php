@@ -41,6 +41,11 @@
             .slip:last-child { page-break-after: auto; break-after: auto; }
         }
     </style>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#15803d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
     <div class="bar noprint">
@@ -54,5 +59,10 @@
         @include('gaji._slip', ['d' => $d])
     @endforeach
     @include('partials.kembali')
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); });
+        }
+    </script>
 </body>
 </html>

@@ -55,6 +55,11 @@
         /* hp-2c */ @media screen and (max-width: 700px) { body { font-size: 13px; } .page { margin: 0; padding: 14px; box-shadow: none; } .kop img { max-width: 70px; } .kpi { grid-template-columns: 1fr 1fr; } td.r, th.r { white-space: normal; } p { text-align: left; } .ttd { grid-template-columns: 1fr; gap: 0; } .bar { padding: .5rem .7rem; } .bar form { width: 100%; } .bar form select { flex: 1 1 100%; } .bar form input { flex: 1 1 auto; } .bar select, .bar input, .bar a, .bar button { min-height: 40px; } }
         @media print { body { background: #fff; } .noprint { display: none !important; } .page { margin: 0; padding: 0; box-shadow: none; max-width: none; } }
     </style>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#15803d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
     <div class="bar noprint">
@@ -212,5 +217,10 @@
         </div>
     </div>
     @include('partials.kembali')
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); });
+        }
+    </script>
 </body>
 </html>

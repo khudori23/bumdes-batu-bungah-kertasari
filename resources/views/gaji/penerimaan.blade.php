@@ -22,6 +22,11 @@
   .noprint { margin-bottom: 10px; }
   @media print { .noprint { display: none; } }
 </style>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#15803d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 <div class="noprint"><button onclick="window.print()">Cetak</button></div>
@@ -83,5 +88,10 @@
       <strong>{{ $set['slip_manager_name'] ?? '' }}</strong><br>{{ $set['slip_manager_title'] ?? 'Manager' }}</td>
   </tr>
 </table>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); });
+        }
+    </script>
 </body>
 </html>

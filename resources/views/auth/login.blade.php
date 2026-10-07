@@ -17,6 +17,11 @@
         button { width:100%; margin-top:1.2rem; background:{{ $set['warna_aksen'] }}; color:#fff; border:0; padding:.7rem; border-radius:8px; font-size:1rem; cursor:pointer; }
     /* hp-2d */ *{box-sizing:border-box} body{padding:1rem;min-height:100vh;min-height:100dvh} .box{padding:1.5rem 1.25rem} @media (min-width:480px){.box{padding:2rem}} input[type=text],input[type=password]{min-height:44px} button{min-height:46px} input[type=checkbox]{width:18px;height:18px;vertical-align:middle}
     </style>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#15803d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
     <form class="box" method="POST" action="{{ route('login.attempt') }}">
@@ -37,5 +42,10 @@
 
         <button type="submit">Masuk</button>
     </form>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js'); });
+        }
+    </script>
 </body>
 </html>

@@ -45,7 +45,9 @@
         </form>
 
         @if ($bolehFreezer)
-            <p class="muted" style="margin-top:.8rem"><a href="{{ route('freezer.index') }}">Kelola freezer &amp; batas simpan &rarr;</a></p>
+            <div style="margin-top:1rem;padding:.8rem 1rem;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc">
+                <a href="{{ route('freezer.index') }}">Kelola freezer &amp; batas simpan &rarr;</a>
+            </div>
         @endif
 
         <script>

@@ -35,3 +35,7 @@ data.sql
 *.bak*
 
 /assets/
+
+.env.lokal
+
+.env.lokal

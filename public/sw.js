@@ -1,4 +1,4 @@
-const VERSI = 'bumdes-v1';
+const VERSI = 'bumdes-v2';
 const STATIS = ['/offline.html', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

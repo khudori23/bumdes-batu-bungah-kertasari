@@ -1,7 +1,7 @@
 {
-  "name": "BUMDes Potong Ayam",
-  "short_name": "BUMDes Ayam",
-  "description": "Administrasi dan operasional BUMDes Potong Ayam",
+  "name": "BUMDESa Batu Bungah Kertasari",
+  "short_name": "BUMDes Kertasari",
+  "description": "Administrasi dan operasional BUMDESa Batu Bungah Kertasari",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

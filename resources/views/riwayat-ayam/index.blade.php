@@ -64,7 +64,7 @@
                         @if ($e->sale_number && ! $e->nota_batal)
                             <span class="chip up">{{ $e->sale_number }}</span>
                         @else
-                            <span class="chip warn">Belum dinota</span>
+                            <span class="chip warn">{{ ($e->sumber ?? null) === 'KASIR' ? 'Nota dibatalkan' : 'Belum dinota' }}</span>
                         @endif
                     </td>
                 </tr>
@@ -74,6 +74,8 @@
         </tbody>
     </table>
 </div>
+
+@include('riwayat-ayam._verifikasi')
 
 @if (count($jual) > 0)
 <div class="card">

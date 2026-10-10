@@ -33,7 +33,7 @@ class KasirAyamHidupController extends Controller
     {
         return LiveBirdSale::query()
             ->leftJoin('sales as s', 's.id', '=', 'live_bird_sales.sale_id')
-            ->where(fn ($q) => $q->whereNull('live_bird_sales.sale_id')->orWhere('s.is_voided', true))
+            ->where(fn ($q) => $q->whereNull('live_bird_sales.sale_id')->orWhere(fn ($v) => $v->where('s.is_voided', true)->where(fn ($z) => $z->whereNull('live_bird_sales.sumber')->orWhere('live_bird_sales.sumber', '!=', 'KASIR'))))
             ->select('live_bird_sales.*');
     }
 

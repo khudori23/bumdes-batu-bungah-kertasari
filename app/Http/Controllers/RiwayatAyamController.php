@@ -50,6 +50,15 @@ class RiwayatAyamController extends Controller
             ->selectRaw('coalesce(sum(i.quantity),0) as e, coalesce(sum(i.weight_kg),0) as k')
             ->first();
 
-        return view('riwayat-ayam.index', compact('batches', 'ecer', 'ecerBulan', 'jual', 'jualBulan'));
+        $verif = DB::table('live_bird_sales as l')
+            ->join('sales as s', 's.id', '=', 'l.sale_id')
+            ->where('l.sumber', 'KASIR')
+            ->where('s.is_voided', false)
+            ->where(fn ($q) => $q->whereNull('l.diverifikasi_at')->orWhereNotNull('l.ekor_pengawas'))
+            ->orderBy('l.sale_date')->orderBy('l.created_at')
+            ->limit(100)
+            ->get(['l.*', 's.sale_number']);
+
+        return view('riwayat-ayam.index', compact('batches', 'ecer', 'ecerBulan', 'jual', 'jualBulan', 'verif'));
     }
 }

@@ -11,6 +11,7 @@
 @endphp
 
 <div class="card">
+    <p style="margin-top:0"><a class="btn" href="{{ route('kasir.ayamhidup.langsung') }}" style="width:auto">+ Jual ayam ecer langsung</a></p>
     <h2 style="margin-top:0">Ayam ecer menunggu nota</h2>
     <p class="muted">
         Penjualan ayam ecer yang dicatat pengawas. Buat nota di sini supaya harga, pembayaran, dan hutang tercatat.

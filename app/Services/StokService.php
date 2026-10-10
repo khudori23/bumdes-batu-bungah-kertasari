@@ -37,7 +37,7 @@ class StokService
     {
         return DB::table('live_bird_sales as l')
             ->leftJoin('sales as s', 's.id', '=', 'l.sale_id')
-            ->where(fn ($q) => $q->whereNull('l.sale_id')->orWhere('s.is_voided', true))
+            ->where(fn ($q) => $q->whereNull('l.sale_id')->orWhere(fn ($v) => $v->where('s.is_voided', true)->where(fn ($z) => $z->whereNull('l.sumber')->orWhere('l.sumber', '!=', 'KASIR'))))
             ->when($dari && $sampai, fn ($q) => $q->whereBetween('l.sale_date', [$dari, $sampai]))
             ->selectRaw('coalesce(sum(l.birds),0) as e, coalesce(sum(l.weight_kg),0) as k')
             ->first();

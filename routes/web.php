@@ -225,3 +225,12 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
 Route::middleware('auth')->delete('/produksi/{weighingRecord}/hapus', \App\Http\Controllers\DeleteWeighingRecordController::class)->name('produksi.hapus');
 
 Route::middleware('auth')->delete('/produksi/batch/{productionBatch}/hapus', \App\Http\Controllers\DeleteProductionBatchController::class)->name('produksi.batch.hapus');
+
+
+// === Hapus Data (permanen) ===
+Route::middleware(['auth'])->prefix('hapus-data')->name('hapus-data.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\HapusDataController::class, 'index'])->name('index');
+    Route::delete('/tabel', [\App\Http\Controllers\HapusDataController::class, 'destroyTables'])->name('tabel');
+    Route::get('/{tabel}', [\App\Http\Controllers\HapusDataController::class, 'show'])->name('show');
+    Route::delete('/{tabel}/baris', [\App\Http\Controllers\HapusDataController::class, 'destroyRows'])->name('baris');
+});

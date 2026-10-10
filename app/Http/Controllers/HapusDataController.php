@@ -2,127 +2,146 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LiveBirdSale;
-use App\Models\Payment;
-use App\Models\Sale;
-use App\Services\AuditService;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Hapus permanen data test / salah input. Khusus ADMIN.
- * Untuk transaksi asli yang salah, pakai "Batalkan nota" (jejak tetap tersimpan).
- */
 class HapusDataController extends Controller
 {
-    private function kunci(string $kunci): void
-    {
-        DB::select('select pg_advisory_xact_lock(?)', [(int) crc32($kunci)]);
-    }
-
-    private function aturan(): array
+    /**
+     * Tabel yang boleh dihapus (nama_tabel => label).
+     * Hapus baris tabel yang TIDAK ingin bisa dihapus lewat menu ini.
+     */
+    private function tabel(): array
     {
         return [
-            'alasan'    => ['required', 'string', 'min:5', 'max:255'],
-            'konfirmasi' => ['required', 'in:HAPUS'],
+            'sale_items' => 'Sale Items',
+            'attendances' => 'Attendances',
+            'employees' => 'Employees',
+            'settings' => 'Settings',
+            'audit_logs' => 'Audit Logs',
+            'live_bird_mortalities' => 'Live Bird Mortalities',
+            'live_bird_opnames' => 'Live Bird Opnames',
+            'kitchen_orders' => 'Kitchen Orders',
+            'kitchen_order_lines' => 'Kitchen Order Lines',
+            'live_bird_sales' => 'Live Bird Sales',
+            'attendance_days' => 'Attendance Days',
+            'employee_loans' => 'Employee Loans',
+            'payrolls' => 'Payrolls',
+            'loan_repayments' => 'Loan Repayments',
+            'expenses' => 'Expenses',
+            'storage_locations' => 'Storage Locations',
+            'products' => 'Products',
+            'product_prices' => 'Product Prices',
+            'customer_types' => 'Customer Types',
+            'customers' => 'Customers',
+            'suppliers' => 'Suppliers',
+            'production_batches' => 'Production Batches',
+            'weighing_records' => 'Weighing Records',
+            'stock_movements' => 'Stock Movements',
+            'stock_adjustments' => 'Stock Adjustments',
+            'purchase_transactions' => 'Purchase Transactions',
+            'sales' => 'Sales',
+            'payments' => 'Payments',
         ];
     }
 
-    public function nota(Request $request, string $sale)
+    private function izin(Request $r): void
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Hanya admin yang boleh menghapus data.');
-
-        $d = $request->validate($this->aturan(), [
-            'konfirmasi.in' => 'Ketik HAPUS (huruf besar) untuk konfirmasi.',
-        ]);
-
-        try {
-            $nomor = DB::transaction(function () use ($sale, $d) {
-                $s = Sale::whereKey($sale)->firstOrFail();
-
-                if ($s->customer_id) {
-                    $this->kunci('cust_' . $s->customer_id);
-                }
-
-                $s = Sale::whereKey($sale)->lockForUpdate()->firstOrFail();
-
-                // Nota ini dibayar lewat transaksi lain -> uangnya milik nota lain
-                $dibayarTerpisah = Payment::where('sale_id', $s->id)
-                    ->whereNull('voided_at')
-                    ->where(fn ($q) => $q->whereNull('settlement_sale_id')->orWhere('settlement_sale_id', '!=', $s->id))
-                    ->exists();
-
-                if ($dibayarTerpisah) {
-                    throw ValidationException::withMessages([
-                        'alasan' => 'Nota ini sudah dibayar lewat transaksi lain, tidak bisa dihapus. Selesaikan pembayarannya dulu.',
-                    ]);
-                }
-
-                if (DB::table('kitchen_orders')->where('sale_id', $s->id)->exists()) {
-                    throw ValidationException::withMessages([
-                        'alasan' => 'Nota ini terhubung ke pesanan dapur, tidak bisa dihapus. Gunakan Batalkan nota.',
-                    ]);
-                }
-
-                $lama = [
-                    'sale_number' => $s->sale_number,
-                    'sale_date'   => (string) $s->sale_date,
-                    'customer'    => $s->customer_name,
-                    'total'       => (float) $s->total_amount,
-                    'voided'      => (bool) $s->is_voided,
-                    'items'       => $s->items()->get(['product_id', 'quantity', 'weight_kg', 'unit_price'])->toArray(),
-                ];
-
-                // Uang yang diterima di nota ini (termasuk yang melunasi nota lama) dan yang masuk ke nota ini
-                Payment::where('settlement_sale_id', $s->id)->delete();
-                Payment::where('sale_id', $s->id)->delete();
-
-                // Catatan ayam ecer: yang dibuat kasir ikut dihapus; catatan pengawas lama dilepas (kembali "menunggu nota")
-                LiveBirdSale::where('sale_id', $s->id)->where('sumber', 'KASIR')->delete();
-                LiveBirdSale::where('sale_id', $s->id)->update(['sale_id' => null]);
-
-                $s->items()->delete();
-                $s->delete();
-
-                AuditService::catat('DELETE', 'sales', $s->id, $lama, ['alasan' => $d['alasan'], 'hapus_permanen' => true]);
-
-                return $lama['sale_number'];
-            });
-        } catch (QueryException $e) {
-            report($e);
-
-            return back()->withErrors(['alasan' => 'Tidak bisa dihapus karena masih dipakai data lain. Gunakan Batalkan nota.']);
-        }
-
-        return redirect()->route('kasir.ayamhidup.index')->with('status', "Nota {$nomor} dihapus permanen.");
+        // Batasi hanya admin/pemilik, hapus tanda // lalu sesuaikan:
+        // abort_unless($r->user()->role === 'admin', 403);
     }
 
-    public function catatan(Request $request, string $rec)
+    private function cekPassword(Request $r): void
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Hanya admin yang boleh menghapus data.');
+        $r->validate(['password' => 'required']);
+        if (!Hash::check($r->password, $r->user()->password)) {
+            throw ValidationException::withMessages(['password' => 'Password salah.']);
+        }
+    }
 
-        $d = $request->validate($this->aturan(), [
-            'konfirmasi.in' => 'Ketik HAPUS (huruf besar) untuk konfirmasi.',
+    private function pastikanTabel(string $tabel): void
+    {
+        abort_unless(array_key_exists($tabel, $this->tabel()) && Schema::hasTable($tabel), 404);
+    }
+
+    public function index(Request $r)
+    {
+        $this->izin($r);
+        $daftar = collect($this->tabel())
+            ->filter(fn($label, $t) => Schema::hasTable($t))
+            ->map(fn($label, $t) => ['label' => $label, 'jumlah' => DB::table($t)->count()]);
+
+        return view('hapus-data.index', compact('daftar'));
+    }
+
+    public function show(Request $r, string $tabel)
+    {
+        $this->izin($r);
+        $this->pastikanTabel($tabel);
+
+        $label = $this->tabel()[$tabel];
+        $baris = DB::table($tabel)->orderByDesc('id')->paginate(50);
+
+        return view('hapus-data.show', compact('tabel', 'label', 'baris'));
+    }
+
+    /** Hapus PERMANEN semua isi tabel yang dicentang. */
+    public function destroyTables(Request $r)
+    {
+        $this->izin($r);
+        $r->validate([
+            'tabel'      => 'required|array|min:1',
+            'tabel.*'    => 'string',
+            'konfirmasi' => 'required|in:HAPUS',
+        ], [
+            'tabel.required' => 'Pilih minimal satu data.',
+            'konfirmasi.in'  => 'Ketik HAPUS (huruf besar) untuk konfirmasi.',
         ]);
+        $this->cekPassword($r);
 
-        DB::transaction(function () use ($rec, $d) {
-            $r = LiveBirdSale::whereKey($rec)->lockForUpdate()->firstOrFail();
+        foreach ($r->tabel as $t) {
+            $this->pastikanTabel($t);
+        }
 
-            if ($r->sale_id) {
-                throw ValidationException::withMessages([
-                    'alasan' => 'Catatan ini sudah punya nota. Hapus lewat halaman nota.',
-                ]);
-            }
+        Schema::disableForeignKeyConstraints();
+        try {
+            DB::transaction(function () use ($r) {
+                foreach (array_keys($this->tabel()) as $t) {
+                    if (in_array($t, $r->tabel, true)) {
+                        DB::table($t)->delete();
+                    }
+                }
+            });
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
 
-            $lama = ['tanggal' => (string) $r->sale_date, 'pelanggan' => $r->customer_name, 'ekor' => (int) $r->birds, 'kg' => (float) $r->weight_kg];
-            $r->delete();
+        return redirect()->route('hapus-data.index')->with('sukses', 'Data terpilih berhasil dihapus permanen.');
+    }
 
-            AuditService::catat('DELETE', 'live_bird_sales', $rec, $lama, ['alasan' => $d['alasan'], 'hapus_permanen' => true]);
-        });
+    /** Hapus PERMANEN baris yang dicentang di satu tabel. */
+    public function destroyRows(Request $r, string $tabel)
+    {
+        $this->izin($r);
+        $this->pastikanTabel($tabel);
 
-        return back()->with('status', 'Catatan dihapus permanen.');
+        $r->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ], ['ids.required' => 'Pilih minimal satu baris.']);
+        $this->cekPassword($r);
+
+        Schema::disableForeignKeyConstraints();
+        try {
+            DB::table($tabel)->whereIn('id', $r->ids)->delete();
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
+
+        return redirect()->route('hapus-data.show', $tabel)
+            ->with('sukses', count($r->ids) . ' baris berhasil dihapus permanen.');
     }
 }

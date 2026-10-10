@@ -134,16 +134,69 @@ class HapusDataController extends Controller
         return view('hapus-data.index', compact('kelompok'));
     }
 
+    /** Label tabel turunan yang ikut terhapus bersama baris tabel ini (mengikuti hapusBaris). */
+    private function turunan(string $tabel, array $lihat = []): array
+    {
+        $hasil = [];
+        $kolom = Str::singular($tabel) . '_id';
+        foreach ($this->semuaTabel() as $anak => $label) {
+            if ($anak === $tabel || in_array($anak, $lihat, true) || in_array($anak, self::LEPAS, true)
+                || !Schema::hasTable($anak) || !Schema::hasColumn($anak, $kolom) || !Schema::hasColumn($anak, 'id')) {
+                continue;
+            }
+            $hasil[$anak] = $label;
+            $hasil += $this->turunan($anak, array_merge($lihat, [$tabel, $anak]));
+        }
+
+        return $hasil;
+    }
+
     public function show(Request $r, string $tabel)
     {
         $this->izin($r);
         $this->pastikanTabel($tabel);
 
         $label = $this->semuaTabel()[$tabel];
-        $urut = Schema::hasColumn($tabel, 'created_at') ? 'created_at' : 'id';
-        $baris = DB::table($tabel)->orderByDesc($urut)->simplePaginate(50);
+        $urut  = Schema::hasColumn($tabel, 'created_at') ? 'created_at' : 'id';
 
-        return view('hapus-data.show', compact('tabel', 'label', 'baris'));
+        // Kolom tanggal untuk filter: yang pertama ada di tabel ini
+        $kolomTgl = collect(['sale_date', 'purchase_date', 'production_date', 'record_date', 'opname_date', 'adjustment_date', 'order_date', 'created_at'])
+            ->first(fn ($k) => Schema::hasColumn($tabel, $k));
+
+        $dari   = (string) $r->query('dari', '');
+        $sampai = (string) $r->query('sampai', '');
+        $q      = trim((string) $r->query('q', ''));
+        $per    = in_array((int) $r->query('per'), [25, 50, 100, 200], true) ? (int) $r->query('per') : 50;
+
+        $query = DB::table($tabel);
+
+        if ($kolomTgl && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dari)) {
+            $query->whereDate($kolomTgl, '>=', $dari);
+        }
+        if ($kolomTgl && preg_match('/^\d{4}-\d{2}-\d{2}$/', $sampai)) {
+            $query->whereDate($kolomTgl, '<=', $sampai);
+        }
+        if ($q !== '') {
+            $kolomCari = array_values(array_filter(
+                Schema::getColumnListing($tabel),
+                fn ($k) => $k !== 'id' && !str_ends_with($k, '_id') && !in_array($k, ['created_at', 'updated_at', 'deleted_at'], true)
+            ));
+            if ($kolomCari) {
+                $like = '%' . addcslashes($q, '%_\\') . '%';
+                $g = DB::connection()->getQueryGrammar();
+                $query->where(function ($w) use ($kolomCari, $like, $g) {
+                    foreach ($kolomCari as $k) {
+                        $w->orWhereRaw('CAST(' . $g->wrap($k) . ' AS TEXT) ILIKE ?', [$like]);
+                    }
+                });
+            }
+        }
+
+        $total   = (clone $query)->count();
+        $baris   = $query->orderByDesc($urut)->simplePaginate($per)->withQueryString();
+        $turunan = $this->turunan($tabel);
+
+        return view('hapus-data.show', compact('tabel', 'label', 'baris', 'kolomTgl', 'dari', 'sampai', 'q', 'per', 'total', 'turunan'));
     }
 
     /** Hapus PERMANEN seluruh isi tabel yang dicentang. */

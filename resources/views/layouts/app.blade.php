@@ -23,7 +23,7 @@
             ],
             'Penjualan' => [
                 ['t' => 'Kasir', 'r' => 'kasir.create', 'on' => ['kasir.create'], 'ok' => $u->canWrite('kasir')],
-                ['t' => 'Ayam Hidup', 'r' => 'kasir.ayamhidup.index', 'on' => ['kasir.ayamhidup.*'], 'ok' => $u->canWrite('kasir')],
+                ['t' => 'Ayam Ecer', 'r' => 'kasir.ayamhidup.index', 'on' => ['kasir.ayamhidup.*'], 'ok' => $u->canWrite('kasir')],
                 ['t' => 'Riwayat', 'r' => 'kasir.index', 'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*', 'kasir.ayamhidup.*'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Pesanan Dapur', 'r' => 'kasir.dapur.index', 'on' => ['kasir.dapur.*'], 'ok' => $u->canView('kasir')],
                 ['t' => 'Piutang', 'r' => 'piutang.index', 'on' => ['piutang.*'], 'ok' => $u->canView('kasir')],

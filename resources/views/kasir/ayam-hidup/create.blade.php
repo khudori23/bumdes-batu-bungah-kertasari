@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Nota Ayam Hidup')
+@section('title', 'Nota Ayam Ecer')
 
 @section('content')
 @include('layouts._errors')
@@ -9,7 +9,7 @@
 @endphp
 
 <div class="card">
-    <h2 style="margin-top:0">Nota ayam hidup</h2>
+    <h2 style="margin-top:0">Nota ayam ecer</h2>
     <p class="muted">
         Catatan pengawas: <strong>{{ $catatan->customer_name }}</strong> &middot;
         <strong>{{ number_format($ekor, 0, ',', '.') }} ekor</strong> &middot;

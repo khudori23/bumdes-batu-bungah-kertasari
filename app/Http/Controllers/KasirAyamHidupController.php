@@ -259,7 +259,7 @@ class KasirAyamHidupController extends Controller
             return [$sale, $kembalian, $sisaHutang];
         });
 
-        $pesan = 'Nota ayam hidup tersimpan.';
+        $pesan = 'Nota ayam ecer tersimpan.';
         if ($kembalian > 0.004) {
             $pesan .= ' Kembalian: Rp ' . number_format($kembalian, 0, ',', '.') . '.';
         }

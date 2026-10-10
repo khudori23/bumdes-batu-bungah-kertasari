@@ -70,13 +70,17 @@
     </table>
 </div>
 
+@if (count($jual) > 0)
 <div class="card">
-    <h3 style="margin-top:0">Ayam dijual per ekor</h3>
-    <p class="muted">Dicatat Kasir saat transaksi, ditampilkan di sini untuk memantau stok. Bulan ini: <strong>{{ $ekor($jualBulan->e) }} ekor</strong> &middot; {{ $kg($jualBulan->k) }} kg.</p>
+    <h3 style="margin-top:0">Ayam dijual lewat kasir biasa (data lama)</h3>
+    <p class="muted">
+        Penjualan ayam hidup yang dulu dicatat kasir lewat halaman kasir biasa. Penjualan baru dicatat pengawas di bagian bawah halaman ini, lalu dinota kasir lewat menu Ayam Ecer, jadi tidak muncul di tabel ini.
+        Bulan ini: <strong>{{ $ekor($jualBulan->e) }} ekor</strong> &middot; {{ $kg($jualBulan->k) }} kg.
+    </p>
     <table class="rtable">
         <thead><tr><th>Tanggal</th><th>No. Nota</th><th>Pembeli</th><th class="right">Ekor</th><th class="right">Berat (kg)</th></tr></thead>
         <tbody>
-            @forelse ($jual as $j)
+            @foreach ($jual as $j)
                 <tr>
                     <td data-label="Tanggal">{{ $tgl($j->sale_date) }}</td>
                     <td data-label="No. Nota">{{ $j->sale_number }}</td>
@@ -84,11 +88,10 @@
                     <td class="right" data-label="Ekor">{{ $ekor($j->quantity) }}</td>
                     <td class="right" data-label="Berat (kg)">{{ $j->weight_kg !== null ? $kg($j->weight_kg) : '-' }}</td>
                 </tr>
-            @empty
-                <tr><td colspan="5" class="muted">Belum ada ayam yang dijual per ekor.</td></tr>
-            @endforelse
+            @endforeach
         </tbody>
     </table>
 </div>
+@endif
 @include('ayam-keluar._jual-ecer')
 @endsection

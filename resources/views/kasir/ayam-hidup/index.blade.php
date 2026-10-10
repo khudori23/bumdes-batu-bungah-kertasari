@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Nota Ayam Hidup')
+@section('title', 'Nota Ayam Ecer')
 
 @section('content')
 @include('layouts._errors')
@@ -11,9 +11,9 @@
 @endphp
 
 <div class="card">
-    <h2 style="margin-top:0">Ayam hidup menunggu nota</h2>
+    <h2 style="margin-top:0">Ayam ecer menunggu nota</h2>
     <p class="muted">
-        Penjualan ayam hidup ecer yang dicatat pengawas. Buat nota di sini supaya harga, pembayaran, dan hutang tercatat.
+        Penjualan ayam ecer yang dicatat pengawas. Buat nota di sini supaya harga, pembayaran, dan hutang tercatat.
         Stok tidak terhitung dua kali.
     </p>
     <table class="rtable">

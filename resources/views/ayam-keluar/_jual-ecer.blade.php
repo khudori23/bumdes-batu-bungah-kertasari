@@ -1,5 +1,5 @@
 <div class="card">
-    <h3 style="margin-top:0">Jual ayam hidup (dicatat Pengawas)</h3>
+    <h3 style="margin-top:0">Jual ayam ecer (dicatat Pengawas)</h3>
     <p class="muted">
         Catat ayam hidup yang dijual langsung dari kandang. Stok ayam hidup otomatis berkurang. Harga diisi Kasir.
         Bulan ini: <strong>{{ $ekor($ecerBulan->e) }} ekor</strong> &middot; {{ $kg($ecerBulan->k) }} kg.

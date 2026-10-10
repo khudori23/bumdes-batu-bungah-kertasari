@@ -3,6 +3,7 @@
     <p class="muted">
         Catat ayam hidup yang dijual langsung dari kandang. Stok ayam hidup otomatis berkurang. Harga diisi Kasir.
         Bulan ini: <strong>{{ $ekor($ecerBulan->e) }} ekor</strong> &middot; {{ $kg($ecerBulan->k) }} kg.
+        Daftar penjualan dan status notanya ada di menu <a href="{{ route('riwayatayam.index') }}">Riwayat Ayam</a>.
     </p>
 
     @if ($bolehTulis)
@@ -28,33 +29,9 @@
             </div>
             <label>Catatan (opsional)</label>
             <input type="text" name="sale_notes" maxlength="255" value="{{ old('sale_notes') }}">
-            <button type="submit" class="btn" style="width:100%">Simpan penjualan ayam hidup</button>
+            <button type="submit" class="btn" style="width:100%">Simpan penjualan ayam ecer</button>
         </form>
     @else
         <p class="muted">Anda hanya dapat melihat data ini.</p>
     @endif
-
-    <table class="rtable" style="margin-top:1rem">
-        <thead><tr><th>Tanggal</th><th>Pelanggan</th><th class="right">Ekor</th><th class="right">Berat (kg)</th><th>Catatan</th><th>Nota</th></tr></thead>
-        <tbody>
-            @forelse ($ecer as $e)
-                <tr>
-                    <td data-label="Tanggal">{{ $tgl($e->sale_date) }}</td>
-                    <td data-label="Pelanggan">{{ $e->customer_name }}</td>
-                    <td class="right" data-label="Ekor">{{ $ekor($e->birds) }}</td>
-                    <td class="right" data-label="Berat (kg)">{{ $kg($e->weight_kg) }}</td>
-                    <td data-label="Catatan">{{ $e->notes ?: '-' }}</td>
-                    <td data-label="Nota">
-                        @if ($e->sale_number && ! $e->nota_batal)
-                            <span class="chip up">{{ $e->sale_number }}</span>
-                        @else
-                            <span class="chip warn">Belum dinota</span>
-                        @endif
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="6" class="muted">Belum ada penjualan yang dicatat pengawas.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
 </div>

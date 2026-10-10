@@ -36,6 +36,7 @@
                 ['t' => 'Pemasok', 'r' => 'pemasok.index', 'on' => ['pemasok.*'], 'ok' => $u->canView('kandang')],
                 ['t' => 'Opname Ayam', 'r' => 'opnameayam.index', 'on' => ['opnameayam.*', 'mortalitas.*'], 'ok' => $u->canView('kandang')],
                 ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang')],
+                ['t' => 'Riwayat Ayam', 'r' => 'riwayatayam.index', 'on' => ['riwayatayam.*'], 'ok' => $u->canView('kandang')],
             ],
             'Data & Laporan' => [
                 ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager() || $u->roleName() === 'KASIR')],
@@ -99,7 +100,7 @@
         $bnAll = [
             ['t' => 'Beranda',  'r' => 'dashboard',            'on' => ['dashboard'],            'ok' => true, 'i' => 'home'],
             ['t' => 'Kasir',    'r' => 'kasir.create',         'on' => ['kasir.create'],         'ok' => $u->canWrite('kasir'), 'i' => 'cart'],
-            ['t' => 'Riwayat',  'r' => 'kasir.index',          'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*'], 'ok' => $u->canView('kasir'), 'i' => 'clock'],
+            ['t' => 'Riwayat',  'r' => 'kasir.index',          'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*', 'kasir.ayamhidup.*'], 'ok' => $u->canView('kasir'), 'i' => 'clock'],
             ['t' => 'Pembelian','r' => 'pembelian.index',      'on' => ['pembelian.*', 'pemasok.*'], 'ok' => $u->canView('kandang'), 'i' => 'box'],
             ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang'), 'i' => 'out'],
             ['t' => 'Produksi', 'r' => 'produksi.index',       'on' => ['produksi.*'],           'ok' => $u->canView('produksi_input'), 'i' => 'fact'],

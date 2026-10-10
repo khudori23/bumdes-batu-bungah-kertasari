@@ -104,6 +104,7 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
         Route::get('/ayam-keluar', [AyamKeluarController::class, 'index'])->name('ayamkeluar.index');
         Route::post('/ayam-keluar', [AyamKeluarController::class, 'store'])->name('ayamkeluar.store');
         Route::post('/ayam-keluar/jual', [\App\Http\Controllers\AyamJualController::class, 'store'])->name('ayamkeluar.jual');
+        Route::get('/riwayat-ayam', [\App\Http\Controllers\RiwayatAyamController::class, 'index'])->name('riwayatayam.index');
         Route::post('/mortalitas', [MortalitasController::class, 'store'])->name('mortalitas.store');
 
         Route::get('/opname-ayam', [OpnameAyamController::class, 'index'])->name('opnameayam.index');

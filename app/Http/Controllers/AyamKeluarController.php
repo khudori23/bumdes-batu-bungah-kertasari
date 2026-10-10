@@ -15,42 +15,13 @@ class AyamKeluarController extends Controller
 {
     public function index(StokService $stok)
     {
-        $batches = ProductionBatch::withSum('weighingRecords as hasil_kg', 'weight_kg')
-            ->orderByDesc('production_date')->orderByDesc('created_at')
-            ->limit(20)->get();
-
-        $dasarJual = fn () => DB::table('sale_items as i')
-            ->join('sales as s', 's.id', '=', 'i.sale_id')
-            ->join('products as p', 'p.id', '=', 'i.product_id')
-            ->where('s.is_voided', false)
-            ->where('p.is_live_bird', true)
-            ->whereNotIn('s.id', fn ($q) => $q->select('sale_id')->from('live_bird_sales')->whereNotNull('sale_id'));
-
-        $jual = $dasarJual()
-            ->orderByDesc('s.sale_date')->orderByDesc('s.created_at')
-            ->limit(20)
-            ->get(['s.sale_number', 's.sale_date', 's.customer_name', 'i.quantity', 'i.weight_kg']);
-
-        $jualBulan = $dasarJual()
-            ->whereBetween('s.sale_date', [now()->startOfMonth()->toDateString(), now()->toDateString()])
-            ->selectRaw('coalesce(sum(i.quantity),0) as e, coalesce(sum(i.weight_kg),0) as k')
-            ->first();
-
-        $ecer = DB::table('live_bird_sales as l')
-            ->leftJoin('sales as s', 's.id', '=', 'l.sale_id')
-            ->orderByDesc('l.sale_date')->orderByDesc('l.created_at')
-            ->limit(20)
-            ->get(['l.*', 's.sale_number', 's.is_voided as nota_batal']);
+        // Riwayat produksi dan penjualan ada di halaman Riwayat Ayam (RiwayatAyamController).
         $ecerBulan = DB::table('live_bird_sales')
             ->whereBetween('sale_date', [now()->startOfMonth()->toDateString(), now()->toDateString()])
             ->selectRaw('coalesce(sum(birds),0) as e, coalesce(sum(weight_kg),0) as k')->first();
 
         return view('ayam-keluar.index', [
             'stok'       => $stok->ayamHidup(),
-            'batches'    => $batches,
-            'jual'       => $jual,
-            'jualBulan'  => $jualBulan,
-            'ecer'       => $ecer,
             'ecerBulan'  => $ecerBulan,
             'bolehTulis' => Auth::user()->canWrite('kandang'),
         ]);

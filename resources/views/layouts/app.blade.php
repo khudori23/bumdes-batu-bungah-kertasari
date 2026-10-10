@@ -40,6 +40,7 @@
             ],
             'Data & Laporan' => [
                 ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager() || $u->roleName() === 'KASIR')],
+                ['t' => 'Hapus Data', 'r' => 'hapus-data.index', 'on' => ['hapus-data.*'], 'ok' => $u->isAdmin()],
                 ['t' => 'Pengeluaran', 'r' => 'pengeluaran.index', 'on' => ['pengeluaran.*'], 'ok' => $u->canView('pengeluaran')],
                 ['t' => 'Laporan', 'r' => 'laporan.index', 'on' => ['laporan.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
             ],

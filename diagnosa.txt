@@ -1,0 +1,72 @@
+﻿=== 1. FILE MENU (SIDEBAR) ===
+C:\Users\Acer\Documents\BUMDesa-Batu-Bungah-Kertasari\resources\views\layouts\app.blade.php
+7: @if ($set['favicon_path'])<link rel="icon" href="{{ asset('storage/' . $set['favicon_path']) }}">@endif
+21: ['t' => 'Dashboard', 'r' => 'dashboard', 'on' => ['dashboard'], 'ok' => $u->roleName() !== 'PEGAWAI'],
+22: ['t' => 'Absen', 'r' => 'absen.index', 'on' => ['absen.*'], 'ok' => $u->roleName() === 'PEGAWAI'],
+42: ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager() || $u->roleName() === 'KASIR')],
+61: <aside class="sb" id="sb" aria-label="Menu utama">
+62: <a class="sb-brand" href="{{ route('dashboard') }}">
+63: @if ($set['logo_path'])<img src="{{ asset('storage/' . $set['logo_path']) }}" alt="">@endif
+66: <nav class="sb-nav">
+69: @if (count($tampil))
+73: <a class="sb-link {{ $aktif($i) ? 'on' : '' }}" href="{{ route($i['r']) }}" @if ($aktif($i)) aria-current="page" @endif>{{ $i['t'] }}</a>
+78: </nav>
+80: <a class="sb-link {{ request()->routeIs('akun.*') ? 'on' : '' }}" href="{{ route('akun.password') }}">Ganti Password</a>
+81: <form method="POST" action="{{ route('logout') }}">
+86: </aside>
+113: <nav class="bn" aria-label="Navigasi cepat">
+116: <a href="{{ route($i['r']) }}" class="{{ $on ? 'on' : '' }}" @if ($on) aria-current="page" @endif>
+121: </nav>
+133: $rn = (string) request()->route()?->getName();
+136: ? route($pre . '.index') : route('dashboard');
+140: <a href="{{ route('dashboard') }}">&#8962; Beranda</a>
+143: @if (session('status'))
+=== 2. ROLE DI ROUTES ===
+17: use App\Http\Middleware\BatasiPegawai;
+32: use App\Http\Middleware\RoleMiddleware;
+36: Route::middleware('guest')->group(function () {
+39: ->middleware('throttle:5,1')
+43: Route::middleware(['auth', BatasiPegawai::class])->group(function () {
+55: Route::middleware(RoleMiddleware::class . ':KASIR')->group(function () {
+56: Route::prefix('kasir')->name('kasir.')->group(function () {
+78: Route::prefix('piutang')->name('piutang.')->group(function () {
+86: Route::middleware(RoleMiddleware::class . ':PENGAWAS_KANDANG')->group(function () {
+88: Route::prefix('pembelian')->name('pembelian.')->group(function () {
+96: Route::prefix('pemasok')->name('pemasok.')->group(function () {
+121: Route::middleware(RoleMiddleware::class . ':KASIR')->group(function () {
+131: Route::middleware(RoleMiddleware::class . ':KASIR')->prefix('produk')->name('produk.')->group(function () {
+141: Route::middleware(RoleMiddleware::class . ':KASIR')->prefix('freezer')->name('freezer.')->group(function () {
+150: Route::middleware(RoleMiddleware::class . ':KASIR')->prefix('pelanggan')->name('pelanggan.')->group(function () {
+157: Route::middleware(RoleMiddleware::class)->get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+167: Route::prefix('pengguna')->name('pengguna.')->group(function () {
+178: Route::prefix('karyawan')->name('karyawan.')->group(function () {
+190: Route::prefix('kasbon')->name('kasbon.')->group(function () {
+196: Route::prefix('gaji')->name('gaji.')->group(function () {
+217: Route::middleware(RoleMiddleware::class . ':PEGAWAI')->prefix('absen')->name('absen.')->group(function () {
+225: Route::middleware('auth')->delete('/produksi/{weighingRecord}/hapus', \App\Http\Controllers\DeleteWeighingRecordController::class)->name('produksi.hapus');
+227: Route::middleware('auth')->delete('/produksi/batch/{productionBatch}/hapus', \App\Http\Controllers\DeleteProductionBatchController::class)->name('produksi.batch.hapus');
+231: Route::middleware(['auth'])->prefix('hapus-data')->name('hapus-data.')->group(function () {
+=== 3. KOLOM ROLE/USER DI MIGRATIONS ===
+0001_01_01_000000_create_users_table.php:18: $table->string('role', 20)->default('KASIR')->index();
+0001_01_01_000000_create_users_table.php:32: $table->foreignUuid('user_id')->nullable()->index();
+2026_10_01_000007_create_production_batches_table.php:19: $table->foreignUuid('created_by_id')->constrained('users');
+2026_10_01_000010_create_sale_items_table.php:39: $t->foreignUuid('cashier_id')->constrained('users');
+2026_10_01_000010_create_sale_items_table.php:64: $t->foreignUuid('cashier_id')->constrained('users');
+2026_10_01_000011_create_payments_table.php:17: $table->foreignUuid('cashier_id')->constrained('users');
+2026_10_01_000012_create_weighing_records_table.php:19: $table->foreignUuid('operator_id')->constrained('users');
+2026_10_01_000013_create_stock_movements_table.php:23: $table->foreignUuid('created_by_id')->constrained('users');
+2026_10_01_000016_create_audit_logs_table.php:19: $table->foreignUuid('user_id')->nullable()->constrained('users');
+2026_10_01_002344_add_due_date_to_sales.php:18: $tempo = (int) config('kasir.tempo_hari', 7);
+2026_10_01_005108_add_voided_at_to_payments_table.php:12: $t->timestampTz('voided_at')->nullable()->after('cashier_id');
+2026_10_01_020100_create_live_bird_tables.php:19: $t->foreignUuid('created_by_id')->constrained('users');
+2026_10_01_020100_create_live_bird_tables.php:35: $t->foreignUuid('created_by_id')->constrained('users');
+2026_10_01_040000_create_sdm_gaji_tables.php:76: $t->foreignUuid('created_by_id')->constrained('users');
+2026_10_06_100000_create_kitchen_orders_tables.php:22: $t->foreignUuid('created_by_id')->constrained('users');
+2026_10_10_100000_create_live_bird_sales_table.php:27: $t->foreignUuid('sale_id')->nullable()->constrained('sales'); // nota kasir yang memakai catatan ini
+2026_10_10_100000_create_live_bird_sales_table.php:28: $t->foreignUuid('created_by_id')->constrained('users');
+2026_10_10_200100_add_verifikasi_ayam_ecer.php:10: 'sumber', 'ekor_pengawas', 'berat_pengawas', 'catatan_verifikasi',
+2026_10_10_200100_add_verifikasi_ayam_ecer.php:17: $t->string('sumber', 10)->nullable();            // KASIR = dicatat langsung oleh kasir
+2026_10_10_200100_add_verifikasi_ayam_ecer.php:25: if (! Schema::hasColumn('live_bird_sales', 'ekor_pengawas')) {
+2026_10_10_200100_add_verifikasi_ayam_ecer.php:26: $t->unsignedInteger('ekor_pengawas')->nullable();   // hasil hitung pengawas bila beda
+2026_10_10_200100_add_verifikasi_ayam_ecer.php:28: if (! Schema::hasColumn('live_bird_sales', 'berat_pengawas')) {
+2026_10_10_200100_add_verifikasi_ayam_ecer.php:29: $t->decimal('berat_pengawas', 10, 2)->nullable();

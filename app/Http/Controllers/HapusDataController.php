@@ -6,52 +6,62 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class HapusDataController extends Controller
 {
+    /** Tabel yang kolom referensinya hanya dikosongkan (bukan ikut dihapus) saat induknya dihapus. */
+    private const LEPAS = ['live_bird_sales'];
+
     /**
-     * Tabel yang boleh dihapus (nama_tabel => label).
-     * Hapus baris tabel yang TIDAK ingin bisa dihapus lewat menu ini.
+     * Kelompok DATA TRANSAKSI yang boleh dihapus (BUKAN data induk).
+     * Tabel yang tidak ada di database otomatis dilewati.
+     * Ingin menambah/mengurangi? Edit daftar ini saja.
      */
-    private function tabel(): array
+    private function kelompok(): array
     {
         return [
-            'sale_items' => 'Sale Items',
-            'attendances' => 'Attendances',
-            'employees' => 'Employees',
-            'settings' => 'Settings',
-            'audit_logs' => 'Audit Logs',
-            'live_bird_mortalities' => 'Live Bird Mortalities',
-            'live_bird_opnames' => 'Live Bird Opnames',
-            'kitchen_orders' => 'Kitchen Orders',
-            'kitchen_order_lines' => 'Kitchen Order Lines',
-            'live_bird_sales' => 'Live Bird Sales',
-            'attendance_days' => 'Attendance Days',
-            'employee_loans' => 'Employee Loans',
-            'payrolls' => 'Payrolls',
-            'loan_repayments' => 'Loan Repayments',
-            'expenses' => 'Expenses',
-            'storage_locations' => 'Storage Locations',
-            'products' => 'Products',
-            'product_prices' => 'Product Prices',
-            'customer_types' => 'Customer Types',
-            'customers' => 'Customers',
-            'suppliers' => 'Suppliers',
-            'production_batches' => 'Production Batches',
-            'weighing_records' => 'Weighing Records',
-            'stock_movements' => 'Stock Movements',
-            'stock_adjustments' => 'Stock Adjustments',
-            'purchase_transactions' => 'Purchase Transactions',
-            'sales' => 'Sales',
-            'payments' => 'Payments',
+            'KASIR' => [
+                'judul' => 'Data Input Kasir',
+                'tabel' => [
+                    'sales'      => 'Penjualan (Nota)',
+                    'sale_items' => 'Item Penjualan',
+                    'payments'   => 'Pembayaran',
+                ],
+            ],
+            'PENGAWAS' => [
+                'judul' => 'Data Input Pengawas Kandang',
+                'tabel' => [
+                    'purchase_transactions' => 'Pembelian',
+                    'production_batches'    => 'Batch Produksi',
+                    'weighing_records'      => 'Penimbangan',
+                    'live_bird_sales'       => 'Penjualan Ayam Hidup (Ecer)',
+                    'live_bird_mortalities' => 'Ayam Mati',
+                    'live_bird_opnames'     => 'Opname Ayam Hidup',
+                    'kitchen_orders'        => 'Pesanan Dapur',
+                    'kitchen_order_lines'   => 'Rincian Pesanan Dapur',
+                    'stock_movements'       => 'Mutasi Stok',
+                    'stock_adjustments'     => 'Penyesuaian Stok',
+                ],
+            ],
         ];
+    }
+
+    private function semuaTabel(): array
+    {
+        $hasil = [];
+        foreach ($this->kelompok() as $k) {
+            $hasil += $k['tabel'];
+        }
+        return $hasil;
     }
 
     private function izin(Request $r): void
     {
-        // Batasi hanya admin/pemilik, hapus tanda // lalu sesuaikan:
-        // abort_unless($r->user()->role === 'admin', 403);
+        // Hanya admin. Ganti bila pemilik/manager juga boleh, misalnya:
+        // abort_unless($r->user()->isAdmin() || $r->user()->isManager(), 403);
+        abort_unless($r->user() && $r->user()->isAdmin(), 403);
     }
 
     private function cekPassword(Request $r): void
@@ -64,17 +74,57 @@ class HapusDataController extends Controller
 
     private function pastikanTabel(string $tabel): void
     {
-        abort_unless(array_key_exists($tabel, $this->tabel()) && Schema::hasTable($tabel), 404);
+        abort_unless(
+            array_key_exists($tabel, $this->semuaTabel())
+            && Schema::hasTable($tabel)
+            && Schema::hasColumn($tabel, 'id'),
+            404
+        );
+    }
+
+    /**
+     * Hapus baris + semua data turunannya (tabel anak dengan kolom <induk>_id),
+     * supaya tidak ada data yatim.
+     */
+    private function hapusBaris(string $tabel, array $ids, int $depth = 0): void
+    {
+        if (!$ids || $depth > 5 || !Schema::hasColumn($tabel, 'id')) {
+            return;
+        }
+
+        $kolom = Str::singular($tabel) . '_id';
+        foreach (array_keys($this->semuaTabel()) as $anak) {
+            if ($anak === $tabel || !Schema::hasTable($anak)
+                || !Schema::hasColumn($anak, $kolom) || !Schema::hasColumn($anak, 'id')) {
+                continue;
+            }
+            if (in_array($anak, self::LEPAS, true)) {
+                DB::table($anak)->whereIn($kolom, $ids)->update([$kolom => null]);
+                continue;
+            }
+            $idAnak = DB::table($anak)->whereIn($kolom, $ids)->pluck('id')->all();
+            $this->hapusBaris($anak, $idAnak, $depth + 1);
+        }
+
+        DB::table($tabel)->whereIn('id', $ids)->delete();
     }
 
     public function index(Request $r)
     {
         $this->izin($r);
-        $daftar = collect($this->tabel())
-            ->filter(fn($label, $t) => Schema::hasTable($t))
-            ->map(fn($label, $t) => ['label' => $label, 'jumlah' => DB::table($t)->count()]);
 
-        return view('hapus-data.index', compact('daftar'));
+        $kelompok = $this->kelompok();
+        foreach ($this->kelompok() as $kode => $k) {
+            foreach ($k['tabel'] as $t => $label) {
+                if (!Schema::hasTable($t)) {
+                    unset($kelompok[$kode]['tabel'][$t]);
+                    continue;
+                }
+                $kelompok[$kode]['tabel'][$t] = ['label' => $label, 'jumlah' => DB::table($t)->count()];
+            }
+        }
+
+        return view('hapus-data.index', compact('kelompok'));
     }
 
     public function show(Request $r, string $tabel)
@@ -82,13 +132,14 @@ class HapusDataController extends Controller
         $this->izin($r);
         $this->pastikanTabel($tabel);
 
-        $label = $this->tabel()[$tabel];
-        $baris = DB::table($tabel)->orderByDesc('id')->paginate(50);
+        $label = $this->semuaTabel()[$tabel];
+        $urut = Schema::hasColumn($tabel, 'created_at') ? 'created_at' : 'id';
+        $baris = DB::table($tabel)->orderByDesc($urut)->simplePaginate(50);
 
         return view('hapus-data.show', compact('tabel', 'label', 'baris'));
     }
 
-    /** Hapus PERMANEN semua isi tabel yang dicentang. */
+    /** Hapus PERMANEN seluruh isi tabel yang dicentang. */
     public function destroyTables(Request $r)
     {
         $this->izin($r);
@@ -109,10 +160,13 @@ class HapusDataController extends Controller
         Schema::disableForeignKeyConstraints();
         try {
             DB::transaction(function () use ($r) {
-                foreach (array_keys($this->tabel()) as $t) {
-                    if (in_array($t, $r->tabel, true)) {
-                        DB::table($t)->delete();
+                foreach (array_keys($this->semuaTabel()) as $t) {
+                    if (!in_array($t, $r->tabel, true) || !Schema::hasTable($t)) {
+                        continue;
                     }
+                    DB::table($t)->pluck('id')->chunk(500)->each(function ($ids) use ($t) {
+                        $this->hapusBaris($t, $ids->all());
+                    });
                 }
             });
         } finally {
@@ -122,7 +176,7 @@ class HapusDataController extends Controller
         return redirect()->route('hapus-data.index')->with('sukses', 'Data terpilih berhasil dihapus permanen.');
     }
 
-    /** Hapus PERMANEN baris yang dicentang di satu tabel. */
+    /** Hapus PERMANEN baris yang dicentang pada satu tabel. */
     public function destroyRows(Request $r, string $tabel)
     {
         $this->izin($r);
@@ -130,13 +184,15 @@ class HapusDataController extends Controller
 
         $r->validate([
             'ids'   => 'required|array|min:1',
-            'ids.*' => 'integer',
+            'ids.*' => 'string',
         ], ['ids.required' => 'Pilih minimal satu baris.']);
         $this->cekPassword($r);
 
         Schema::disableForeignKeyConstraints();
         try {
-            DB::table($tabel)->whereIn('id', $r->ids)->delete();
+            DB::transaction(function () use ($r, $tabel) {
+                $this->hapusBaris($tabel, array_values($r->ids));
+            });
         } finally {
             Schema::enableForeignKeyConstraints();
         }

@@ -119,9 +119,6 @@ class KasirController extends Controller
             }
 
             $qty = round((float) $row['quantity'], 2);
-            $sub = round((float) $price * $qty, 2);
-            $subtotal = round($subtotal + $sub, 2);
-
             // Ayam hidup dijual per ekor: jumlah harus bulat dan berat total wajib diisi
             $berat = null;
             if ($product->is_live_bird) {
@@ -141,6 +138,12 @@ class KasirController extends Controller
                 $ekorHidup += (int) $qty;
             }
 
+            // Ayam hidup: harga per kg x berat timbang. Produk lain: harga x jumlah.
+            $sub = $product->is_live_bird
+                ? round((float) $price * $berat, 2)
+                : round((float) $price * $qty, 2);
+            $subtotal = round($subtotal + $sub, 2);
+
             $lines[] = [
                 'product_id' => $product->id,
                 'quantity'   => $qty,
@@ -148,6 +151,7 @@ class KasirController extends Controller
                 'unit_price' => (float) $price,
                 'subtotal'   => $sub,
                 'weight_kg'  => $berat,
+                'price_basis' => $product->is_live_bird ? 'KG' : 'UNIT',
             ];
         }
 

@@ -99,6 +99,11 @@ class HapusDataController extends Controller
             return;
         }
 
+        if ($tabel === 'sales') {
+            // Catatan ayam ecer buatan kasir ikut dihapus bersama notanya (sama seperti nota()).
+            DB::table('live_bird_sales')->whereIn('sale_id', $ids)->where('sumber', 'KASIR')->delete();
+        }
+
         $kolom = Str::singular($tabel) . '_id';
         foreach (array_keys($this->semuaTabel()) as $anak) {
             if ($anak === $tabel || !Schema::hasTable($anak)

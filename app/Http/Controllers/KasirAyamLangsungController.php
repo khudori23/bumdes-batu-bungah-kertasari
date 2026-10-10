@@ -61,7 +61,12 @@ class KasirAyamLangsungController extends Controller
         $sisaStok = $stok->ayamHidup();
         $defaultTempo = (int) config('kasir.tempo_hari', 7);
 
-        return view('kasir.ayam-hidup.langsung', compact('types', 'defaultTypeId', 'harga', 'pelanggan', 'sisaStok', 'defaultTempo'));
+        $antrian = LiveBirdSale::query()
+            ->leftJoin('sales as s', 's.id', '=', 'live_bird_sales.sale_id')
+            ->where(fn ($q) => $q->whereNull('live_bird_sales.sale_id')->orWhere(fn ($v) => $v->where('s.is_voided', true)->where(fn ($z) => $z->whereNull('live_bird_sales.sumber')->orWhere('live_bird_sales.sumber', '!=', 'KASIR'))))
+            ->count();
+
+        return view('kasir.ayam-hidup.langsung', compact('types', 'defaultTypeId', 'harga', 'pelanggan', 'sisaStok', 'defaultTempo', 'antrian'));
     }
 
     public function store(Request $request, PiutangService $piutang, StokService $stok)
@@ -129,7 +134,7 @@ class KasirAyamLangsungController extends Controller
                 ]);
             }
 
-            $subtotal = round($harga * $ekor, 2);
+            $subtotal = round($harga * $berat, 0); // harga per KG x berat total (BUKAN per ekor)
             $discount = round((float) ($data['discount'] ?? 0), 2);
 
             if ($discount > $subtotal) {

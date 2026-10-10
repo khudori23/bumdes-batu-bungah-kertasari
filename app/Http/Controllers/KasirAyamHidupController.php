@@ -53,6 +53,10 @@ class KasirAyamHidupController extends Controller
             ->orderBy('live_bird_sales.sale_date')->orderBy('live_bird_sales.created_at')
             ->get();
 
+        if ($daftar->isEmpty()) {
+            return redirect()->route('kasir.ayamhidup.langsung');
+        }
+
         $sudah = DB::table('live_bird_sales as l')
             ->join('sales as s', 's.id', '=', 'l.sale_id')
             ->where('s.is_voided', false)
@@ -124,7 +128,7 @@ class KasirAyamHidupController extends Controller
 
             $ekor     = (int) $catatan->birds;
             $berat    = round((float) $catatan->weight_kg, 2);
-            $subtotal = round($harga * $ekor, 2);
+            $subtotal = round($harga * $berat, 0); // harga per KG x berat total (BUKAN per ekor)
             $discount = round((float) ($data['discount'] ?? 0), 2);
 
             if ($discount > $subtotal) {

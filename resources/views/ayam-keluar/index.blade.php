@@ -90,4 +90,5 @@
         </tbody>
     </table>
 </div>
+@include('ayam-keluar._jual-ecer')
 @endsection

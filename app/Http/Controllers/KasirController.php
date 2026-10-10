@@ -111,6 +111,12 @@ class KasirController extends Controller
                 ]);
             }
 
+            if ($product->is_live_bird) {
+                throw ValidationException::withMessages([
+                    'items' => 'Ayam hidup tidak dijual lewat halaman ini. Pakai menu "Ayam Hidup" supaya stok tidak terhitung dua kali.',
+                ]);
+            }
+
             $price = $prices->get($product->id);
 
             if ($price === null) {

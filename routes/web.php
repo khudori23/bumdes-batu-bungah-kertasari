@@ -62,6 +62,9 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
             Route::post('/dapur', [\App\Http\Controllers\KitchenOrderController::class, 'store'])->name('dapur.store');
             Route::get('/dapur/{order}', [\App\Http\Controllers\KitchenOrderController::class, 'show'])->whereUuid('order')->name('dapur.show');
             Route::post('/dapur/{order}/batal', [\App\Http\Controllers\KitchenOrderController::class, 'void'])->whereUuid('order')->name('dapur.void');
+            Route::get('/ayam-hidup', [\App\Http\Controllers\KasirAyamHidupController::class, 'index'])->name('ayamhidup.index');
+            Route::get('/ayam-hidup/{rec}', [\App\Http\Controllers\KasirAyamHidupController::class, 'create'])->whereUuid('rec')->name('ayamhidup.create');
+            Route::post('/ayam-hidup/{rec}', [\App\Http\Controllers\KasirAyamHidupController::class, 'store'])->whereUuid('rec')->name('ayamhidup.store');
             Route::get('/riwayat', [KasirController::class, 'index'])->name('index');
             Route::get('/{sale}', [KasirController::class, 'show'])->whereUuid('sale')->name('show');
             Route::post('/{sale}/void', [KasirController::class, 'void'])->whereUuid('sale')->name('void'); // khusus admin (dicek di controller)
@@ -100,6 +103,7 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
         Route::get('/laporan-kandang', [LaporanKandangController::class, 'index'])->name('laporankandang.index');
         Route::get('/ayam-keluar', [AyamKeluarController::class, 'index'])->name('ayamkeluar.index');
         Route::post('/ayam-keluar', [AyamKeluarController::class, 'store'])->name('ayamkeluar.store');
+        Route::post('/ayam-keluar/jual', [\App\Http\Controllers\AyamJualController::class, 'store'])->name('ayamkeluar.jual');
         Route::post('/mortalitas', [MortalitasController::class, 'store'])->name('mortalitas.store');
 
         Route::get('/opname-ayam', [OpnameAyamController::class, 'index'])->name('opnameayam.index');

@@ -32,6 +32,17 @@ class StokService
             ->first();
     }
 
+    /** Catatan ecer pengawas yang belum jadi nota kasir (atau notanya dibatalkan). */
+    private function ecerBelumDinota(?string $dari = null, ?string $sampai = null): object
+    {
+        return DB::table('live_bird_sales as l')
+            ->leftJoin('sales as s', 's.id', '=', 'l.sale_id')
+            ->where(fn ($q) => $q->whereNull('l.sale_id')->orWhere('s.is_voided', true))
+            ->when($dari && $sampai, fn ($q) => $q->whereBetween('l.sale_date', [$dari, $sampai]))
+            ->selectRaw('coalesce(sum(l.birds),0) as e, coalesce(sum(l.weight_kg),0) as k')
+            ->first();
+    }
+
     /** Stok ayam hidup saat ini: ['ekor' => int, 'kg' => float]. */
     public function ayamHidup(): array
     {
@@ -44,10 +55,11 @@ class StokService
         $opn = DB::table('live_bird_opnames')
             ->selectRaw('coalesce(sum(diff_birds),0) as e, coalesce(sum(diff_kg),0) as k')->first();
         $jual = $this->jualEkor();
+        $ecer = $this->ecerBelumDinota();
 
         return [
-            'ekor' => (int) round($beli->e - $mati->e - $prod->e - $jual->e + $opn->e),
-            'kg'   => round((float) ($beli->k - $mati->k - $prod->k - $jual->k + $opn->k), 2),
+            'ekor' => (int) round($beli->e - $mati->e - $prod->e - $jual->e - $ecer->e + $opn->e),
+            'kg'   => round((float) ($beli->k - $mati->k - $prod->k - $jual->k - $ecer->k + $opn->k), 2),
         ];
     }
 
@@ -62,11 +74,12 @@ class StokService
         $prod = DB::table('production_batches')->whereBetween('production_date', [$f, $t])
             ->selectRaw('coalesce(sum(input_birds),0) as e, coalesce(sum(input_weight_kg),0) as k')->first();
         $jual = $this->jualEkor($f, $t);
+        $ecer = $this->ecerBelumDinota($f, $t);
 
         return [
             'mati'     => ['e' => (int) $mati->e, 'k' => (float) $mati->k],
             'produksi' => ['e' => (int) $prod->e, 'k' => (float) $prod->k],
-            'jual'     => ['e' => (int) $jual->e, 'k' => (float) $jual->k],
+            'jual'     => ['e' => (int) ($jual->e + $ecer->e), 'k' => (float) ($jual->k + $ecer->k)],
         ];
     }
 

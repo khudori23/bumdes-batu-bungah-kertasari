@@ -2,11 +2,12 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>@yield('title', $set['app_name'])</title>
     @if ($set['favicon_path'])<link rel="icon" href="{{ asset('storage/' . $set['favicon_path']) }}">@endif
     <style>:root { --hdr:{{ $set['warna_header'] }}; --accent:{{ $set['warna_aksen'] }}; }</style>
     <link rel="stylesheet" href="{{ asset('css/ui.css') }}?v={{ @filemtime(public_path('css/ui.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ @filemtime(public_path('css/responsive.css')) }}">
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#15803d">
     <meta name="mobile-web-app-capable" content="yes">
@@ -160,6 +161,20 @@
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
         document.querySelectorAll('#sb a').forEach(function (a) { a.addEventListener('click', function () { set(false); }); });
         window.addEventListener('pageshow', function () { set(false); });
+    })();
+    </script>
+    <script>
+    /* Bungkus tiap tabel di dalam main supaya bisa digeser ke samping di layar sempit. */
+    (function () {
+        document.querySelectorAll('main table').forEach(function (t) {
+            var p = t.parentNode;
+            if (! p || p.classList.contains('tbl-scroll')) { return; }
+            if (/(auto|scroll)/.test(getComputedStyle(p).overflowX)) { return; }
+            var w = document.createElement('div');
+            w.className = 'tbl-scroll';
+            p.insertBefore(w, t);
+            w.appendChild(t);
+        });
     })();
     </script>
     @include('partials.kembali')

@@ -1,0 +1,27 @@
+/* responsive.css - pelengkap ui.css, dimuat setelah ui.css. Hanya menambah aturan. */
+
+/* 1. Dasar: teks tidak membesar sendiri, gambar dan konten tidak melebihi layar */
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+img { max-width:100%; }
+main { min-width:0; overflow-wrap:break-word; }
+
+/* 2. Tabel: pembungkus geser samping (dipasang otomatis oleh skrip di layout) */
+.tbl-scroll { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+@media print { .tbl-scroll { overflow:visible; } }
+
+/* 3. iOS: input 16px supaya layar tidak zoom sendiri saat difokuskan */
+@supports (-webkit-touch-callout: none) {
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea { font-size:16px !important; }
+}
+
+/* 4. Layar sentuh: target sentuh minimal 44px */
+@media (pointer:coarse) {
+  .btn, select, textarea,
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]) { min-height:44px; }
+}
+
+/* 5. iPhone berponi (landscape): jangan tertutup area aman kiri/kanan */
+@media (max-width:900px) {
+  body { padding-left:env(safe-area-inset-left,0px); padding-right:env(safe-area-inset-right,0px); }
+  .bn { padding-left:env(safe-area-inset-left,0px); padding-right:env(safe-area-inset-right,0px); }
+}

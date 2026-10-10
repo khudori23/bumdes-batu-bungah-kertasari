@@ -65,6 +65,8 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
             Route::get('/ayam-hidup', [\App\Http\Controllers\KasirAyamHidupController::class, 'index'])->name('ayamhidup.index');
             Route::get('/ayam-hidup/langsung', [\App\Http\Controllers\KasirAyamLangsungController::class, 'create'])->name('ayamhidup.langsung');
             Route::post('/ayam-hidup/langsung', [\App\Http\Controllers\KasirAyamLangsungController::class, 'store'])->name('ayamhidup.langsung.store');
+            Route::delete('/ayam-hidup/hapus-nota/{sale}', [\App\Http\Controllers\HapusDataController::class, 'nota'])->whereUuid('sale')->name('ayamhidup.hapusnota');
+            Route::delete('/ayam-hidup/hapus-catatan/{rec}', [\App\Http\Controllers\HapusDataController::class, 'catatan'])->whereUuid('rec')->name('ayamhidup.hapuscatatan');
             Route::get('/ayam-hidup/{rec}', [\App\Http\Controllers\KasirAyamHidupController::class, 'create'])->whereUuid('rec')->name('ayamhidup.create');
             Route::post('/ayam-hidup/{rec}', [\App\Http\Controllers\KasirAyamHidupController::class, 'store'])->whereUuid('rec')->name('ayamhidup.store');
             Route::get('/riwayat', [KasirController::class, 'index'])->name('index');

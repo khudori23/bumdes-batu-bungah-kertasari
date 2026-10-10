@@ -126,4 +126,5 @@
         </form>
     @endif
 </div>
+@include('kasir._hapus')
 @endsection

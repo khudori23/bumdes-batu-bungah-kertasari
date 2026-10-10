@@ -27,7 +27,18 @@
                     <td class="right" data-label="Ekor">{{ $ekor($d->birds) }}</td>
                     <td class="right" data-label="Berat (kg)">{{ $kg($d->weight_kg) }}</td>
                     <td data-label="Catatan">{{ $d->notes ?: '-' }}</td>
-                    <td><a class="btn" href="{{ route('kasir.ayamhidup.create', $d->id) }}">Buat nota</a></td>
+                    <td>
+                        <a class="btn" href="{{ route('kasir.ayamhidup.create', $d->id) }}">Buat nota</a>
+                        @if (auth()->user()->isAdmin())
+                            <form method="POST" action="{{ route('kasir.ayamhidup.hapuscatatan', $d->id) }}" style="margin-top:.4rem"
+                                  onsubmit="var a=prompt('Alasan hapus permanen (min. 5 huruf):'); if(!a||a.length<5){return false;} this.alasan.value=a; this.konfirmasi.value='HAPUS'; return confirm('Hapus catatan ini permanen?');">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="alasan"><input type="hidden" name="konfirmasi">
+                                <button type="submit" class="btn" style="background:#e11d48;width:auto">Hapus</button>
+                            </form>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr><td colspan="6" class="muted">Tidak ada catatan yang menunggu nota.</td></tr>

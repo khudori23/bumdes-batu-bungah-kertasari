@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             ['username' => 'pengawas', 'name' => 'Pengawas Kandang', 'role' => User::ROLE_PENGAWAS, 'password' => 'pengawas12345'],
             ['username' => 'kasir',    'name' => 'Kasir',            'role' => User::ROLE_KASIR,    'password' => 'kasir12345'],
         ];
-
+        
         foreach ($akun as $a) {
             User::firstOrCreate(
                 ['username' => $a['username']],

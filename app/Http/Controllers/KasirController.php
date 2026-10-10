@@ -39,7 +39,8 @@ class KasirController extends Controller
         $types = CustomerType::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
         $defaultTypeId = $types->firstWhere('code', 'MASYARAKAT_UMUM')?->id ?? $types->first()?->id;
 
-        $products = Product::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name', 'primary_unit', 'is_live_bird']);
+        // Ayam hidup tidak dijual lewat kasir (dicatat dari menu pengawas)
+        $products = Product::where('is_active', true)->where('is_live_bird', false)->orderBy('name')->get(['id', 'code', 'name', 'primary_unit', 'is_live_bird']);
 
         // Susunan: $prices[customer_type_id][product_id] = harga
         $prices = [];

@@ -1,0 +1,61 @@
+/* tema.css - tema "Hijau Kertasari": latar putih elegan, hijau dan emas dari logo BUMDes.
+   Dimuat SETELAH ui.css dan responsive.css. Menimpa variabel lama sehingga halaman
+   lain ikut berganti warna tanpa diubah satu per satu. */
+:root {
+    color-scheme: light;
+    --utama:#065325; --utama-terang:#177030; --hijau-lembut:#E3F1E8; --hijau-tipis:#F1F8F3;
+    --emas:#D89E23; --emas-teks:#8A6210; --emas-lembut:#FBF1DA;
+    --judul:#533F2C; --teks:#2B2A26;
+    --naik:#1F9D55; --turun:#C0392B;
+    --garis:#E3E8E2; --latar:#F6F8F5;
+    --bayangan:0 1px 2px rgba(6,83,37,.06), 0 8px 24px rgba(6,83,37,.06);
+
+    /* timpa variabel lama dari ui.css */
+    --navy:var(--teks); --teal:var(--utama-terang); --line:var(--garis); --bg:var(--latar);
+    --muted:#667064; --radius:14px;
+    --accent:var(--utama); --hdr:var(--utama);
+}
+body { background:var(--latar); color:var(--teks); }
+
+/* komponen umum */
+.card, .op { border-color:var(--garis); box-shadow:var(--bayangan); }
+.btn { box-shadow:0 4px 12px rgba(6,83,37,.18); }
+.ok { background:var(--hijau-lembut); border-color:#BFE0C9; }
+.chip.up { background:var(--hijau-lembut); color:var(--utama); }
+.chip.down { background:#FBE5E2; color:#9E2B20; }
+.chip.warn { background:var(--emas-lembut); color:var(--emas-teks); }
+
+/* bilah atas dan navigasi bawah: kaca tipis */
+.topbar { background:rgba(255,255,255,.86); -webkit-backdrop-filter:blur(14px) saturate(1.3); backdrop-filter:blur(14px) saturate(1.3); border-bottom-color:var(--garis); }
+@media (max-width:900px) {
+    .bn { background:rgba(255,255,255,.88); -webkit-backdrop-filter:blur(16px) saturate(1.4); backdrop-filter:blur(16px) saturate(1.4); border-top-color:var(--garis); box-shadow:0 -4px 20px rgba(6,83,37,.08); }
+    .bn a, .bn button { position:relative; }
+    .bn .on { color:var(--utama); }
+    .bn a.on::before { content:""; position:absolute; top:0; left:50%; width:26px; height:3px; margin-left:-13px; border-radius:0 0 4px 4px; background:var(--emas); }
+}
+
+/* dashboard (dashboard-v2.css dimuat belakangan, jadi diawali body .dx) */
+body .dx { --ink:var(--teks); --mut:#667064; --line:var(--garis); --teal:var(--utama-terang); --teal-d:var(--utama); --amber:var(--emas-teks); --rose:var(--turun); --grey:var(--emas); }
+body .dx a { color:var(--utama); }
+body .dx .dx-head h2 { color:var(--judul); }
+body .dx .dx-card { border-radius:16px; box-shadow:var(--bayangan); }
+body .dx .dx-chip.up { background:var(--hijau-lembut); color:var(--utama); }
+body .dx .dx-chip.down, body .dx .dx-chip.warn { background:var(--emas-lembut); color:var(--emas-teks); }
+body .dx .dx-chip.bad { background:#FBE5E2; color:#9E2B20; }
+body .dx .dx-chip.flat { background:#EEF1EC; color:#4F594D; }
+body .dx .dx-track, body .dx .dx-stack { background:#EEF1EC; }
+
+/* halaman Semua Menu dan grid ikon */
+.mn-group { margin-bottom:1.5rem; }
+.mn-title { display:flex; align-items:center; gap:.6rem; margin:0 0 .65rem; font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--emas-teks); font-weight:700; }
+.mn-title::after { content:""; flex:1; height:1px; background:var(--garis); }
+.mn-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; }
+@media (min-width:560px) { .mn-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media (min-width:900px) { .mn-grid { grid-template-columns:repeat(6,minmax(0,1fr)); } }
+.mn-item { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:.5rem; min-height:98px; padding:.85rem .35rem .7rem; background:#fff; border:1px solid var(--garis); border-radius:18px; box-shadow:var(--bayangan); color:var(--judul); text-decoration:none; text-align:center; font:inherit; font-size:.8rem; font-weight:600; line-height:1.2; cursor:pointer; width:100%; -webkit-tap-highlight-color:transparent; transition:transform .12s ease, border-color .12s ease; }
+.mn-item:active { transform:scale(.97); }
+.mn-item:hover { border-color:var(--utama-terang); }
+.mn-item:focus-visible { outline:2px solid var(--utama-terang); outline-offset:2px; }
+.mn-ico { display:grid; place-items:center; width:48px; height:48px; border-radius:16px; background:var(--hijau-lembut); color:var(--utama); }
+.mn-ico svg { width:28px; height:28px; fill:currentColor; }
+.mn-form { display:contents; }

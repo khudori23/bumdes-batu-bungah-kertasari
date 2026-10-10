@@ -44,6 +44,7 @@ Route::middleware(['auth', BatasiPegawai::class])->group(function () {
     // Semua peran
     Route::get('/', fn () => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::view('/menu', 'menu')->name('menu.index');
 
     // Akun
     Route::get('/akun/password', [AkunController::class, 'showPassword'])->name('akun.password');

@@ -279,6 +279,7 @@
         </div>
     @else
         {{-- Kasir dan pengawas: KPI dasar tetap seperti sebelumnya --}}
+        @include('partials.grid-menu')
         <div class="dx-kpis k3">
             <div class="dx-card">
                 <div class="dx-l">Omzet</div><div class="dx-v">{{ $rp($now['omzet']) }}</div>

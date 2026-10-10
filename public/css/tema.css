@@ -59,3 +59,19 @@ body .dx .dx-track, body .dx .dx-stack { background:#EEF1EC; }
 .mn-ico { display:grid; place-items:center; width:48px; height:48px; border-radius:16px; background:var(--hijau-lembut); color:var(--utama); }
 .mn-ico svg { width:28px; height:28px; fill:currentColor; }
 .mn-form { display:contents; }
+/* ===== layout tanpa sidebar ===== */
+.topbar-brand { display:flex; align-items:center; flex:none; }
+.topbar-logo { height:32px; width:auto; border-radius:6px; display:block; }
+.topnav { display:none; gap:.4rem; }
+.topnav a { padding:.4rem .9rem; border-radius:999px; color:var(--judul); text-decoration:none; font-size:.88rem; font-weight:600; }
+.topnav a:hover { background:var(--hijau-tipis); }
+.topnav a.on { background:var(--hijau-lembut); color:var(--utama); }
+@media (min-width:901px) {
+    .app-body { margin-left:0; }
+    .topnav { display:flex; }
+}
+@media (max-width:900px) {
+    .bn svg { width:24px; height:24px; fill:currentColor; stroke:none; }
+}
+body .dx .mn-item { color:var(--judul); }
+.mn-home { margin-bottom:1rem; }

@@ -28,6 +28,7 @@
         </div>
     </div>
 
+    @include('partials.grid-menu')
     @include('dashboard._stok')
 </div>
 @endsection

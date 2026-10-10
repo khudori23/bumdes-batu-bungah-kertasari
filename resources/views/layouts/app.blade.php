@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ @filemtime(public_path('css/responsive.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/tema.css') }}?v={{ @filemtime(public_path('css/tema.css')) }}">
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#15803d">
+    <meta name="theme-color" content="#065325">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
@@ -18,116 +18,39 @@
 <body class="{{ request()->routeIs('kasir.create') ? 'no-bn' : '' }}">
     @php
         $u = auth()->user();
-        $menu = [
-            'Utama' => [
-                ['t' => 'Dashboard', 'r' => 'dashboard', 'on' => ['dashboard'], 'ok' => $u->roleName() !== 'PEGAWAI'],
-                ['t' => 'Absen', 'r' => 'absen.index', 'on' => ['absen.*'], 'ok' => $u->roleName() === 'PEGAWAI'],
-            ],
-            'Penjualan' => [
-                ['t' => 'Kasir', 'r' => 'kasir.create', 'on' => ['kasir.create'], 'ok' => $u->canWrite('kasir')],
-                ['t' => 'Ayam Ecer', 'r' => 'kasir.ayamhidup.index', 'on' => ['kasir.ayamhidup.*'], 'ok' => $u->canWrite('kasir')],
-                ['t' => 'Riwayat', 'r' => 'kasir.index', 'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*', 'kasir.ayamhidup.*'], 'ok' => $u->canView('kasir')],
-                ['t' => 'Pesanan Dapur', 'r' => 'kasir.dapur.index', 'on' => ['kasir.dapur.*'], 'ok' => $u->canView('kasir')],
-                ['t' => 'Piutang', 'r' => 'piutang.index', 'on' => ['piutang.*'], 'ok' => $u->canView('kasir')],
-                ['t' => 'Pelanggan', 'r' => 'pelanggan.index', 'on' => ['pelanggan.*'], 'ok' => $u->canView('kasir')],
-                ['t' => 'Produksi', 'r' => 'produksi.index', 'on' => ['produksi.*'], 'ok' => $u->canView('produksi_input')],
-                ['t' => 'Opname Produk', 'r' => 'opnameproduk.index', 'on' => ['opnameproduk.*'], 'ok' => $u->canView('opname_hasil')],
-            ],
-            'Kandang & Produksi' => [
-                ['t' => 'Pembelian', 'r' => 'pembelian.index', 'on' => ['pembelian.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Pemasok', 'r' => 'pemasok.index', 'on' => ['pemasok.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Opname Ayam', 'r' => 'opnameayam.index', 'on' => ['opnameayam.*', 'mortalitas.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang')],
-                ['t' => 'Riwayat Ayam', 'r' => 'riwayatayam.index', 'on' => ['riwayatayam.*'], 'ok' => $u->canView('kandang')],
-            ],
-            'Data & Laporan' => [
-                ['t' => 'Produk', 'r' => 'produk.index', 'on' => ['produk.*'], 'ok' => ($u->isAdmin() || $u->isManager() || $u->roleName() === 'KASIR')],
-                ['t' => 'Hapus Data', 'r' => 'hapus-data.index', 'on' => ['hapus-data.*'], 'ok' => $u->isAdmin()],
-                ['t' => 'Pengeluaran', 'r' => 'pengeluaran.index', 'on' => ['pengeluaran.*'], 'ok' => $u->canView('pengeluaran')],
-                ['t' => 'Laporan', 'r' => 'laporan.index', 'on' => ['laporan.*'], 'ok' => ($u->isAdmin() || $u->isManager())],
-            ],
-            'Administrasi' => [
-                ['t' => 'Pengguna', 'r' => 'pengguna.index', 'on' => ['pengguna.*'], 'ok' => $u->isAdmin()],
-                ['t' => 'SDM & Gaji', 'r' => 'gaji.index', 'on' => ['gaji.*'], 'ok' => $u->isAdmin()],
-                ['t' => 'Pengaturan', 'r' => 'pengaturan.edit', 'on' => ['pengaturan.*'], 'ok' => $u->isAdmin()],
-            ],
-        ];
-        $aktif = function (array $i): bool {
-            $a = request()->routeIs(...$i['on']);
-            if ($a && ! empty($i['not']) && request()->routeIs(...$i['not'])) {
-                $a = false;
-            }
-            return $a;
-        };
+        $bnItems = \App\Support\Menu::bawah($u);
+        $pegawai = $u->roleName() === 'PEGAWAI';
     @endphp
 
-    <aside class="sb" id="sb" aria-label="Menu utama">
-        <a class="sb-brand" href="{{ route('dashboard') }}">
-            @if ($set['logo_path'])<img src="{{ asset('storage/' . $set['logo_path']) }}" alt="">@endif
-            <span>{{ $set['app_name'] }}</span>
-        </a>
-        <nav class="sb-nav">
-            @foreach ($menu as $judul => $items)
-                @php $tampil = array_filter($items, fn ($i) => $i['ok']); @endphp
-                @if (count($tampil))
-                    <div class="sb-group">
-                        <p class="sb-title">{{ $judul }}</p>
-                        @foreach ($tampil as $i)
-                            <a class="sb-link {{ $aktif($i) ? 'on' : '' }}" href="{{ route($i['r']) }}" @if ($aktif($i)) aria-current="page" @endif>{{ $i['t'] }}</a>
-                        @endforeach
-                    </div>
-                @endif
-            @endforeach
-        </nav>
-        <div class="sb-foot">
-            <a class="sb-link {{ request()->routeIs('akun.*') ? 'on' : '' }}" href="{{ route('akun.password') }}">Ganti Password</a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit">Keluar ({{ $u->username }})</button>
-            </form>
-        </div>
-    </aside>
-    <div class="sb-overlay" id="sbOverlay"></div>
-    @php
-        $ic = [
-            'home'  => '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
-            'cart'  => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.5a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 7H6"/>',
-            'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-            'box'   => '<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
-            'fact'  => '<path d="M4 20V10l5 3V9l5 3V6h6v14z"/>',
-            'clip'  => '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h6"/>',
-            'chart' => '<path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-3"/>',
-            'out'   => '<path d="M5 12h12M13 6l6 6-6 6M5 5v14"/>',
-            'menu'  => '<path d="M4 6h16M4 12h16M4 18h16"/>',
-        ];
-        $bnAll = [
-            ['t' => 'Beranda',  'r' => 'dashboard',            'on' => ['dashboard'],            'ok' => true, 'i' => 'home'],
-            ['t' => 'Kasir',    'r' => 'kasir.create',         'on' => ['kasir.create'],         'ok' => $u->canWrite('kasir'), 'i' => 'cart'],
-            ['t' => 'Riwayat',  'r' => 'kasir.index',          'on' => ['kasir.*'], 'not' => ['kasir.create', 'kasir.dapur.*', 'kasir.ayamhidup.*'], 'ok' => $u->canView('kasir'), 'i' => 'clock'],
-            ['t' => 'Pembelian','r' => 'pembelian.index',      'on' => ['pembelian.*', 'pemasok.*'], 'ok' => $u->canView('kandang'), 'i' => 'box'],
-            ['t' => 'Ayam Keluar', 'r' => 'ayamkeluar.index', 'on' => ['ayamkeluar.*'], 'ok' => $u->canView('kandang'), 'i' => 'out'],
-            ['t' => 'Produksi', 'r' => 'produksi.index',       'on' => ['produksi.*'],           'ok' => $u->canView('produksi_input'), 'i' => 'fact'],
-            ['t' => 'Opname',   'r' => 'opnameayam.index',     'on' => ['opnameayam.*', 'mortalitas.*'], 'ok' => $u->canView('kandang'), 'i' => 'clip'],
-            ['t' => 'Laporan',  'r' => 'laporan.index',        'on' => ['laporan.*'],            'ok' => ($u->isAdmin() || $u->isManager()), 'i' => 'chart'],
-            ['t' => 'Laporan',  'r' => 'laporankandang.index', 'on' => ['laporankandang.*'],     'ok' => $u->isPengawasKandang(), 'i' => 'chart'],
-        ];
-        $bnItems = array_slice(array_values(array_filter($bnAll, fn ($i) => $i['ok'])), 0, 4);
-    @endphp
-    <nav class="bn" aria-label="Navigasi cepat">
+    <nav class="bn" aria-label="Navigasi utama">
         @foreach ($bnItems as $i)
-            @php $on = request()->routeIs(...$i['on']) && ! (! empty($i['not']) && request()->routeIs(...$i['not'])); @endphp
+            @php $on = \App\Support\Menu::aktif($i); @endphp
             <a href="{{ route($i['r']) }}" class="{{ $on ? 'on' : '' }}" @if ($on) aria-current="page" @endif>
-                <svg viewBox="0 0 24 24" aria-hidden="true">{!! $ic[$i['i']] !!}</svg>{{ $i['t'] }}
+                <x-ikon :nama="$i['i']" /><span>{{ $i['bn'] ?? $i['t'] }}</span>
             </a>
         @endforeach
-        <button type="button" id="bnMenu" aria-label="Buka menu lengkap"><svg viewBox="0 0 24 24" aria-hidden="true">{!! $ic['menu'] !!}</svg>Menu</button>
+        @unless ($pegawai)
+            <a href="{{ route('menu.index') }}" class="{{ request()->routeIs('menu.*') ? 'on' : '' }}">
+                <x-ikon nama="squares-four" /><span>Menu</span>
+            </a>
+        @endunless
     </nav>
-    <script>document.getElementById('bnMenu').addEventListener('click', function () { document.body.classList.add('sb-open'); });</script>
 
     <div class="app-body">
         <header class="topbar">
-            <button type="button" class="menu-btn" id="menuBtn" aria-label="Buka menu" aria-controls="sb" aria-expanded="false"><span></span></button>
+            <a class="topbar-brand" href="{{ route('dashboard') }}" aria-label="Beranda">
+                @if ($set['logo_path'])<img class="topbar-logo" src="{{ asset('storage/' . $set['logo_path']) }}" alt="">@endif
+            </a>
             <div class="topbar-title">@yield('title', $set['app_name'])</div>
+            <nav class="topnav" aria-label="Menu utama">
+                @if ($pegawai)
+                    <a href="{{ route('absen.index') }}" class="{{ request()->routeIs('absen.*') ? 'on' : '' }}">Absen</a>
+                    <a href="{{ route('akun.password') }}" class="{{ request()->routeIs('akun.*') ? 'on' : '' }}">Akun</a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'on' : '' }}">Beranda</a>
+                    <a href="{{ route('menu.index') }}" class="{{ request()->routeIs('menu.*') ? 'on' : '' }}">Semua Menu</a>
+                @endif
+            </nav>
             <div class="topbar-user">{{ $u->username }}</div>
         </header>
         <main>
@@ -150,20 +73,6 @@
         </main>
     </div>
 
-    <script>
-    (function () {
-        var b = document.body, btn = document.getElementById('menuBtn');
-        function set(buka) {
-            b.classList.toggle('sb-open', buka);
-            btn.setAttribute('aria-expanded', buka ? 'true' : 'false');
-        }
-        btn.addEventListener('click', function () { set(! b.classList.contains('sb-open')); });
-        document.getElementById('sbOverlay').addEventListener('click', function () { set(false); });
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
-        document.querySelectorAll('#sb a').forEach(function (a) { a.addEventListener('click', function () { set(false); }); });
-        window.addEventListener('pageshow', function () { set(false); });
-    })();
-    </script>
     <script>
     /* Bungkus tiap tabel di dalam main supaya bisa digeser ke samping di layar sempit. */
     (function () {

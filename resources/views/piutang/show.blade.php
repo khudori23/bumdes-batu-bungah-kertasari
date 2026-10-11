@@ -31,7 +31,7 @@
             <div style="margin-top:.3rem;font-size:.85rem;color:#0d9488;font-weight:600">Semua nota lunas.</div>
         @endif
 
-        @if ($punyaHutang)
+        @if ($punyaHutang && ! auth()->user()->isManager())
             <form method="POST" action="{{ route('piutang.bayar', $customer) }}" style="margin-top:1rem"
                   onsubmit="var b=this.querySelector('button[type=submit]');b.disabled=true;b.textContent='Menyimpan...'">
                 @csrf

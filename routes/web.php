@@ -40,7 +40,7 @@ Route::middleware('guest')->group(function () {
         ->name('login.attempt');
 });
 
-Route::middleware(['auth', BatasiPegawai::class])->group(function () {
+Route::middleware(['auth', BatasiPegawai::class, \App\Http\Middleware\ManagerBacaSaja::class])->group(function () {
     // Semua peran
     Route::get('/', fn () => redirect()->route('dashboard'));
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

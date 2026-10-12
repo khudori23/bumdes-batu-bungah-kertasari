@@ -19,7 +19,15 @@
 .hd .inp{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;box-sizing:border-box;margin-bottom:10px}
 .hd .btn-del{width:100%;padding:14px;border:0;border-radius:10px;background:#e11d48;color:#fff;font-size:1rem;font-weight:600;cursor:pointer}
 .hd .pad{padding:14px}
-</style>
+
+/* perbaikan lebar di HP */
+.app-body,main{min-width:0;max-width:100%}
+.hd{box-sizing:border-box;width:100%;max-width:100%;min-width:0}
+.hd form,.hd .box{min-width:0;max-width:100%}
+.hd .scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.hd .fg{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.hd .fg input,.hd .fg select{min-width:0;max-width:100%}
+.hd .box-h,.hd .row{flex-wrap:wrap}</style>
 
 <div class="hd">
     <h1>Hapus Data</h1>

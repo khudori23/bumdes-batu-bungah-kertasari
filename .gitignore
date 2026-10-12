@@ -42,3 +42,7 @@ data.sql
 
 diagnosa.txt
 kode-ayam-ecer.txt
+
+*.bak*
+database/seeders/Untitled-1.txt
+*.dump

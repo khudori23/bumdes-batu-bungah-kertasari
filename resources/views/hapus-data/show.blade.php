@@ -28,7 +28,15 @@
 .hd .info{margin-left:auto;color:#64748b;font-size:.85rem}
 .hd .cnt{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:.92rem;color:#0f172a}
 .hd .cnt b{font-size:1.1rem;color:#e11d48}
-</style>
+
+/* perbaikan lebar di HP */
+.app-body,main{min-width:0;max-width:100%}
+.hd{box-sizing:border-box;width:100%;max-width:100%;min-width:0}
+.hd form,.hd .box{min-width:0;max-width:100%}
+.hd .scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.hd .fg{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.hd .fg input,.hd .fg select{min-width:0;max-width:100%}
+.hd .box-h,.hd .row{flex-wrap:wrap}</style>
 
 <div class="hd">
     <a class="lnk" href="{{ route('hapus-data.index') }}">&larr; Kembali</a>

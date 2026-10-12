@@ -89,9 +89,40 @@ class HapusDataController extends Controller
         );
     }
 
+    /** Relasi anak yang namanya TIDAK mengikuti pola <induk_singular>_id. Format: induk => [anak => kolom]. */
+    private const RELASI_EXTRA = [
+        'production_batches' => [
+            'weighing_records' => 'batch_id',
+            'stock_movements'  => 'batch_id',
+        ],
+    ];
+
+    /** [tabel_anak => kolom_fk] untuk sebuah induk: dari pola nama + RELASI_EXTRA. */
+    private function daftarAnak(string $tabel): array
+    {
+        $hasil = [];
+        $kolom = Str::singular($tabel) . '_id';
+
+        foreach (array_keys($this->semuaTabel()) as $anak) {
+            if ($anak !== $tabel
+                && Schema::hasTable($anak)
+                && Schema::hasColumn($anak, $kolom)
+                && Schema::hasColumn($anak, 'id')) {
+                $hasil[$anak] = $kolom;
+            }
+        }
+
+        foreach (self::RELASI_EXTRA[$tabel] ?? [] as $anak => $k) {
+            if (Schema::hasTable($anak) && Schema::hasColumn($anak, $k) && Schema::hasColumn($anak, 'id')) {
+                $hasil[$anak] = $k;
+            }
+        }
+
+        return $hasil;
+    }
+
     /**
-     * Hapus baris + semua data turunannya (tabel anak dengan kolom <induk>_id),
-     * supaya tidak ada data yatim.
+     * Hapus baris + semua data turunannya, supaya tidak ada data yatim.
      */
     private function hapusBaris(string $tabel, array $ids, int $depth = 0): void
     {
@@ -104,12 +135,7 @@ class HapusDataController extends Controller
             DB::table('live_bird_sales')->whereIn('sale_id', $ids)->where('sumber', 'KASIR')->delete();
         }
 
-        $kolom = Str::singular($tabel) . '_id';
-        foreach (array_keys($this->semuaTabel()) as $anak) {
-            if ($anak === $tabel || !Schema::hasTable($anak)
-                || !Schema::hasColumn($anak, $kolom) || !Schema::hasColumn($anak, 'id')) {
-                continue;
-            }
+        foreach ($this->daftarAnak($tabel) as $anak => $kolom) {
             if (in_array($anak, self::LEPAS, true)) {
                 DB::table($anak)->whereIn($kolom, $ids)->update([$kolom => null]);
                 continue;
@@ -120,7 +146,6 @@ class HapusDataController extends Controller
 
         DB::table($tabel)->whereIn('id', $ids)->delete();
     }
-
     public function index(Request $r)
     {
         $this->izin($r);
@@ -143,19 +168,16 @@ class HapusDataController extends Controller
     private function turunan(string $tabel, array $lihat = []): array
     {
         $hasil = [];
-        $kolom = Str::singular($tabel) . '_id';
-        foreach ($this->semuaTabel() as $anak => $label) {
-            if ($anak === $tabel || in_array($anak, $lihat, true) || in_array($anak, self::LEPAS, true)
-                || !Schema::hasTable($anak) || !Schema::hasColumn($anak, $kolom) || !Schema::hasColumn($anak, 'id')) {
+        foreach ($this->daftarAnak($tabel) as $anak => $kolom) {
+            if (in_array($anak, $lihat, true) || in_array($anak, self::LEPAS, true)) {
                 continue;
             }
-            $hasil[$anak] = $label;
+            $hasil[$anak] = $this->semuaTabel()[$anak] ?? $anak;
             $hasil += $this->turunan($anak, array_merge($lihat, [$tabel, $anak]));
         }
 
         return $hasil;
     }
-
     public function show(Request $r, string $tabel)
     {
         $this->izin($r);
@@ -222,21 +244,16 @@ class HapusDataController extends Controller
             $this->pastikanTabel($t);
         }
 
-        Schema::disableForeignKeyConstraints();
-        try {
-            DB::transaction(function () use ($r) {
-                foreach (array_keys($this->semuaTabel()) as $t) {
-                    if (!in_array($t, $r->tabel, true) || !Schema::hasTable($t)) {
-                        continue;
-                    }
-                    DB::table($t)->pluck('id')->chunk(500)->each(function ($ids) use ($t) {
-                        $this->hapusBaris($t, $ids->all());
-                    });
+        DB::transaction(function () use ($r) {
+            foreach (array_keys($this->semuaTabel()) as $t) {
+                if (!in_array($t, $r->tabel, true) || !Schema::hasTable($t)) {
+                    continue;
                 }
-            });
-        } finally {
-            Schema::enableForeignKeyConstraints();
-        }
+                DB::table($t)->pluck('id')->chunk(500)->each(function ($ids) use ($t) {
+                    $this->hapusBaris($t, $ids->all());
+                });
+            }
+        });
 
         return redirect()->route('hapus-data.index')->with('sukses', 'Data terpilih berhasil dihapus permanen.');
     }
@@ -253,14 +270,9 @@ class HapusDataController extends Controller
         ], ['ids.required' => 'Pilih minimal satu baris.']);
         $this->cekPassword($r);
 
-        Schema::disableForeignKeyConstraints();
-        try {
-            DB::transaction(function () use ($r, $tabel) {
-                $this->hapusBaris($tabel, array_values($r->ids));
-            });
-        } finally {
-            Schema::enableForeignKeyConstraints();
-        }
+        DB::transaction(function () use ($r, $tabel) {
+            $this->hapusBaris($tabel, array_values($r->ids));
+        });
 
         return redirect()->route('hapus-data.show', $tabel)
             ->with('sukses', count($r->ids) . ' baris berhasil dihapus permanen.');

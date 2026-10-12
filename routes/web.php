@@ -244,3 +244,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::delete('pembelian/{id}/hapus', [\App\Http\Controllers\HapusCatatanKandangController::class, 'pembelian'])->name('pembelian.hapus');
 });
+
+Route::middleware(['auth', \App\Http\Middleware\BatasiPegawai::class, \App\Http\Middleware\ManagerBacaSaja::class, \App\Http\Middleware\RoleMiddleware::class . ':MANAGER'])->group(function () {
+    Route::get('stok', [\App\Http\Controllers\StokManagerController::class, 'index'])->name('stok.index');
+});

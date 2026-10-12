@@ -38,6 +38,7 @@ class Menu
                 ['t' => 'Opname Ayam', 'r' => 'opnameayam.index', 'i' => 'clipboard-text', 'on' => ['opnameayam.*', 'mortalitas.*'], 'ok' => $lihatKandang],
                 ['t' => 'Ayam Keluar', 'bn' => 'Keluar', 'r' => 'ayamkeluar.index', 'i' => 'truck', 'on' => ['ayamkeluar.*'], 'ok' => $lihatKandang],
                 ['t' => 'Riwayat Ayam', 'r' => 'riwayatayam.index', 'i' => 'list-checks', 'on' => ['riwayatayam.*'], 'ok' => $lihatKandang],
+                ['t' => 'Stok', 'r' => 'stok.index', 'i' => 'package', 'on' => ['stok.*'], 'ok' => $u->isManager()],
                 ['t' => 'Produksi', 'r' => 'produksi.index', 'i' => 'factory', 'on' => ['produksi.*'], 'ok' => $u->canView('produksi_input')],
                 ['t' => 'Opname Produk', 'r' => 'opnameproduk.index', 'i' => 'scales', 'on' => ['opnameproduk.*'], 'ok' => $u->canView('opname_hasil')],
             ],
@@ -88,7 +89,7 @@ class Menu
         $urut = match ($u->roleName()) {
             'KASIR' => ['dashboard', 'kasir.create', 'kasir.dapur.index', 'kasir.index'],
             'PENGAWAS_KANDANG' => ['dashboard', 'pembelian.index', 'ayamkeluar.index', 'laporankandang.index'],
-            'MANAGER' => ['dashboard', 'laporan.index', 'kasir.index', 'piutang.index'],
+            'MANAGER' => ['dashboard', 'stok.index', 'produksi.index', 'laporan.index'],
             'PEGAWAI' => ['absen.index', 'akun.password'],
             default => ['dashboard', 'kasir.create', 'laporan.index', 'piutang.index'],
         };

@@ -10,13 +10,13 @@
 @endphp
 
 <div class="card">
-    <h2 style="margin-top:0">Input hasil produksi</h2>
+    <h2 style="margin-top:0">{{ $bolehTulis ? 'Input hasil produksi' : 'Hasil produksi' }}</h2>
     <p class="muted">
         @if ($lihatAyam && $stok)
             Stok ayam hidup saat ini: <strong>{{ number_format($stok['ekor'], 0, ',', '.') }} ekor</strong>
             &middot; {{ number_format($stok['kg'], 1, ',', '.') }} kg.
         @endif
-        Isi hasil potong per item (kg) dan pilih freezer penyimpanannya. Boleh diisi beberapa kali dalam sehari.
+        @if ($bolehTulis)Isi hasil potong per item (kg) dan pilih freezer penyimpanannya. Boleh diisi beberapa kali dalam sehari.@endif
     </p>
 
     @if ($bolehTulis)

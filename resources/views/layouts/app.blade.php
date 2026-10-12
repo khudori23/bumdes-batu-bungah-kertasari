@@ -54,21 +54,12 @@
             <div class="topbar-user">{{ $u->username }}</div>
         </header>
         <main>
-            @unless (request()->routeIs('dashboard'))
-                @php
-                    $rn = (string) request()->route()?->getName();
-                    $pre = preg_replace('/\.[^.]+$/', '', $rn);
-                    $induk = (! str_ends_with($rn, '.index') && \Illuminate\Support\Facades\Route::has($pre . '.index'))
-                        ? route($pre . '.index') : route('dashboard');
-                @endphp
-                <div class="navhal">
-                    <a href="{{ $induk }}" data-kembali>&larr; Kembali</a>
-                    <a href="{{ route('dashboard') }}">&#8962; Beranda</a>
-                </div>
-            @endunless
-            @if (session('status'))
-                <div class="ok">{{ session('status') }}</div>
+            @if (session('status') || session('success'))
+                <div class="ok">{{ session('status') ?? session('success') }}</div>
             @endif
+            @error('hapus')
+                <div class="ok" style="background:#fff1f2;border-color:#fecdd3;color:#9f1239">{{ $message }}</div>
+            @enderror
             @yield('content')
         </main>
     </div>

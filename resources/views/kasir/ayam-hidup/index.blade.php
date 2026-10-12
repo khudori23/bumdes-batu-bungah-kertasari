@@ -3,6 +3,9 @@
 @section('title', 'Nota Ayam Ecer')
 
 @section('content')
+@if ($errors->has('alasan'))
+    <div class="ok" style="background:#fff1f2;border-color:#fecdd3;color:#9f1239">{{ $errors->first('alasan') }}</div>
+@endif
 @include('layouts._errors')
 @php
     $ekor = fn ($n) => number_format((float) $n, 0, ',', '.');
@@ -29,7 +32,7 @@
                     <td data-label="Catatan">{{ $d->notes ?: '-' }}</td>
                     <td>
                         <a class="btn" href="{{ route('kasir.ayamhidup.create', $d->id) }}">Buat nota</a>
-                        @if (auth()->user()->isAdmin())
+                        @if (auth()->user()->isAdmin() || (in_array(auth()->user()->roleName(), [\App\Models\User::ROLE_KASIR, \App\Models\User::ROLE_PENGAWAS], true) && (string) $d->created_by_id === (string) auth()->id() && \Illuminate\Support\Carbon::parse($d->sale_date)->isToday()))
                             <form method="POST" action="{{ route('kasir.ayamhidup.hapuscatatan', $d->id) }}" style="margin-top:.4rem"
                                   onsubmit="var a=prompt('Alasan hapus permanen (min. 5 huruf):'); if(!a||a.length<5){return false;} this.alasan.value=a; this.konfirmasi.value='HAPUS'; return confirm('Hapus catatan ini permanen?');">
                                 @csrf

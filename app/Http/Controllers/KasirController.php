@@ -336,7 +336,15 @@ class KasirController extends Controller
 
     public function void(Request $request, Sale $sale)
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Hanya admin yang boleh membatalkan transaksi.');
+        $uv = Auth::user();
+        abort_unless($uv && ($uv->isAdmin() || $uv->roleName() === \App\Models\User::ROLE_KASIR), 403, 'Anda tidak berhak membatalkan transaksi.');
+
+        if (! $uv->isAdmin()) {
+            $kolomPembuat = collect(['created_by_id', 'cashier_id', 'user_id'])
+                ->first(fn ($k) => \Illuminate\Support\Facades\Schema::hasColumn('sales', $k));
+            abort_unless($kolomPembuat && (string) $sale->{$kolomPembuat} === (string) $uv->id, 403, 'Hanya nota yang Anda buat sendiri.');
+            abort_unless(\Illuminate\Support\Carbon::parse($sale->sale_date)->isToday(), 403, 'Hanya bisa dibatalkan pada hari yang sama dengan input.');
+        }
 
         $data = $request->validate([
             'void_reason' => ['required', 'string', 'min:5', 'max:255'],

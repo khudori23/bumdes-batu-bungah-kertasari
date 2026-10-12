@@ -110,8 +110,8 @@
         <a class="btn" style="margin:0;background:#fff;color:#0f172a;border:1px solid #cbd5e1;text-decoration:none" href="{{ route('kasir.index') }}">Riwayat</a>
     </div>
 
-    {{-- Pembatalan: khusus admin, hanya untuk nota yang belum batal --}}
-    @if (! $batal && auth()->user()->isAdmin())
+    {{-- Pembatalan: admin, atau kasir untuk nota hari ini miliknya sendiri --}}
+    @if (! $batal && (auth()->user()->isAdmin() || (auth()->user()->roleName() === \App\Models\User::ROLE_KASIR && (string) $sale->cashier_id === (string) auth()->id() && \Illuminate\Support\Carbon::parse($sale->sale_date)->isToday())))
         <form method="POST" action="{{ route('kasir.void', $sale) }}" class="noprint"
               style="margin-top:1rem;border-top:1px solid #e2e8f0;padding-top:.8rem"
               onsubmit="return confirm({{ \Illuminate\Support\Js::from('Batalkan nota ' . $sale->sale_number . '? Tindakan ini tidak bisa diurungkan.') }})">

@@ -73,7 +73,7 @@
             <tr>
                 <th>No. Transaksi</th><th>Tanggal</th><th>Pemasok</th>
                 <th class="right">Ekor</th><th class="right">Berat (kg)</th>
-                <th class="right">Harga/kg</th><th class="right">Total biaya</th>
+                <th class="right">Harga/kg</th><th class="right">Total biaya</th><th></th>
             </tr>
         </thead>
         <tbody>
@@ -86,9 +86,17 @@
                     <td class="right" data-label="Berat (kg)">{{ $kg($p->total_weight_kg) }}</td>
                     <td class="right" data-label="Harga/kg">{{ $rp($p->unit_price_per_kg) }}</td>
                     <td class="right" data-label="Total"><strong>{{ $rp($p->total_cost) }}</strong></td>
+                    <td>
+                        @if (auth()->user()->isAdmin() || (auth()->user()->roleName() === \App\Models\User::ROLE_PENGAWAS && (string) $p->received_by_id === (string) auth()->id() && $p->created_at?->isToday()))
+                            <form method="POST" action="{{ route('pembelian.hapus', $p->id) }}" onsubmit="return confirm('Hapus pembelian ini permanen?')" style="display:inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn" style="background:#e11d48;width:auto">Hapus</button>
+                            </form>
+                        @endif
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="7">Belum ada pembelian untuk filter ini.</td></tr>
+                <tr><td colspan="8">Belum ada pembelian untuk filter ini.</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -280,14 +280,14 @@ class HapusDataController extends Controller
 
     public function nota(Request $request, string $sale)
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Hanya admin yang boleh menghapus data.');
+        $u = $this->izinHapus(['KASIR']);
 
         $d = $request->validate($this->aturan(), [
             'konfirmasi.in' => 'Ketik HAPUS (huruf besar) untuk konfirmasi.',
         ]);
 
         try {
-            $nomor = DB::transaction(function () use ($sale, $d) {
+            $nomor = DB::transaction(function () use ($sale, $d, $u) {
                 $s = Sale::whereKey($sale)->firstOrFail();
 
                 if ($s->customer_id) {
@@ -295,6 +295,8 @@ class HapusDataController extends Controller
                 }
 
                 $s = Sale::whereKey($sale)->lockForUpdate()->firstOrFail();
+
+                $this->batasKoreksi($u, $s->sale_date);
 
                 // Nota ini dibayar lewat transaksi lain -> uangnya milik nota lain
                 $dibayarTerpisah = Payment::where('sale_id', $s->id)
@@ -349,14 +351,16 @@ class HapusDataController extends Controller
 
     public function catatan(Request $request, string $rec)
     {
-        abort_unless(Auth::user()->isAdmin(), 403, 'Hanya admin yang boleh menghapus data.');
+        $u = $this->izinHapus(['KASIR', 'PENGAWAS_KANDANG']);
 
         $d = $request->validate($this->aturan(), [
             'konfirmasi.in' => 'Ketik HAPUS (huruf besar) untuk konfirmasi.',
         ]);
 
-        DB::transaction(function () use ($rec, $d) {
+        DB::transaction(function () use ($rec, $d, $u) {
             $r = LiveBirdSale::whereKey($rec)->lockForUpdate()->firstOrFail();
+
+                $this->batasKoreksi($u, $r->sale_date, $r->created_by_id);
 
             if ($r->sale_id) {
                 throw ValidationException::withMessages([
@@ -373,6 +377,28 @@ class HapusDataController extends Controller
         return back()->with('status', 'Catatan dihapus permanen.');
     }
 
+    /** Admin bebas; peran lain hanya jika termasuk $peran. */
+    private function izinHapus(array $peran)
+    {
+        $u = Auth::user();
+        abort_unless($u && ($u->isAdmin() || in_array($u->roleName(), $peran, true)), 403, 'Anda tidak berhak menghapus data ini.');
+
+        return $u;
+    }
+
+    /** Non-admin: hanya hari yang sama, dan (bila $pemilik diberikan) hanya catatan miliknya sendiri. */
+    private function batasKoreksi($u, $tanggal, $pemilik = null): void
+    {
+        if ($u->isAdmin()) {
+            return;
+        }
+        if (!\Illuminate\Support\Carbon::parse($tanggal)->isToday()) {
+            throw ValidationException::withMessages(['alasan' => 'Hanya bisa dihapus pada hari yang sama dengan input.']);
+        }
+        if ($pemilik !== null && (string) $pemilik !== (string) $u->id) {
+            throw ValidationException::withMessages(['alasan' => 'Anda hanya bisa menghapus catatan yang Anda input sendiri.']);
+        }
+    }
     private function aturan(): array
     {
         return [

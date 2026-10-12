@@ -136,12 +136,19 @@
                     @endif
                     <td data-label="Rincian"><span>
                         @foreach ($b->weighingRecords as $w)
-                            {{ $w->product?->name }}: <strong>{{ number_format($w->weight_kg, 2, ',', '.') }} kg</strong>@if ($w->storageLocation) <small class="muted">({{ $w->storageLocation->name }})</small>@endif @if (! $loop->last)<br>@endif
+                            {{ $w->product?->name }}: <strong>{{ number_format($w->weight_kg, 2, ',', '.') }} kg</strong>@if ($w->storageLocation) <small class="muted">({{ $w->storageLocation->name }})</small>@endif
+                            @if (auth()->user()->isAdmin() || (auth()->user()->roleName() === \App\Models\User::ROLE_PENGAWAS && (string) $b->created_by_id === (string) auth()->id() && $w->created_at?->isToday()))
+                                <form method="POST" action="{{ route('produksi.hapus', $w) }}" onsubmit="return confirm('Hapus timbangan ini? Stok ikut dikoreksi.')" style="display:inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" style="padding:0 .4rem;font-size:.75rem;background:#e11d48;color:#fff;border:0;border-radius:4px;width:auto">Hapus</button>
+                                </form>
+                            @endif
+                            @if (! $loop->last)<br>@endif
                         @endforeach
                     </span></td>
                     <td data-label="Oleh">{{ $b->createdBy?->name }}</td>
                     <td data-label="Aksi">
-                        @if (in_array(auth()->user()->roleName(), [\App\Models\User::ROLE_ADMIN, \App\Models\User::ROLE_KASIR], true))
+                        @if (auth()->user()->isAdmin() || (auth()->user()->roleName() === \App\Models\User::ROLE_PENGAWAS && (string) $b->created_by_id === (string) auth()->id() && $b->created_at?->isToday()))
                             <form method="POST" action="{{ route('produksi.batch.hapus', $b) }}"
                                   onsubmit="return confirm('Hapus batch {{ $b->batch_number }} beserta semua hasil timbangnya? Stok akan ikut dikoreksi dan tidak bisa dikembalikan.')">
                                 @csrf

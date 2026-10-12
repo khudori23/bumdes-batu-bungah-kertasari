@@ -3,42 +3,42 @@
 
 @section('content')
 <style>
-.hd{box-sizing:border-box;width:100%;max-width:760px;margin:0 auto;padding:12px;min-width:0;--bar:0px}
-.hd *{box-sizing:border-box;min-width:0}
-.hd h1{font-size:1.3rem;margin:4px 0 4px;color:#0f172a}
-.hd .sub{color:#64748b;font-size:.9rem;margin:0 0 12px;line-height:1.45}
-.hd .warn{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;border-radius:12px;padding:10px 12px;font-size:.88rem;margin-bottom:12px;line-height:1.45}
-.hd .ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:12px;padding:10px 12px;font-size:.9rem;margin-bottom:12px}
-.hd .box{background:#fff;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:14px;overflow:hidden}
-.hd .box-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;background:#0f172a;color:#fff;font-weight:600}
-.hd .box-h label{font-weight:400;font-size:.85rem;display:flex;gap:8px;align-items:center;cursor:pointer;white-space:nowrap}
-.hd .row{display:flex;align-items:center;gap:10px;padding:0 14px 0 0;border-top:1px solid #f1f5f9}
-.hd .row label.pick{display:flex;align-items:center;gap:12px;flex:1;padding:14px 0 14px 14px;cursor:pointer}
-.hd .row:has(.cek:checked){background:#fff1f2}
-.hd .nm{flex:1;line-height:1.3}
-.hd .n{background:#e2e8f0;color:#334155;border-radius:999px;padding:2px 10px;font-size:.78rem;white-space:nowrap;font-variant-numeric:tabular-nums}
-.hd .n.zero{opacity:.5}
-.hd a.lnk{color:#0f766e;font-size:.85rem;white-space:nowrap;text-decoration:none;padding:10px 4px;font-weight:600}
-.hd input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:#e11d48}
-.hd .bar{position:sticky;bottom:var(--bar);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:10px 12px;box-shadow:0 -4px 18px rgba(15,23,42,.12)}
-.hd .bar b{color:#e11d48;font-size:1.1rem}
-.hd .btn{border:0;border-radius:10px;padding:12px 16px;font-size:.95rem;font-weight:600;cursor:pointer}
-.hd .btn-del{background:#e11d48;color:#fff}
-.hd .btn-del:disabled{opacity:.4;cursor:not-allowed}
-.hd .btn-x{background:#e2e8f0;color:#334155}
-.hd .lbl{display:block;font-size:.85rem;color:#334155;margin:0 0 4px}
-.hd .inp{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin-bottom:10px;background:#fff}
-.hd dialog{border:0;border-radius:16px;padding:0;width:min(92vw,420px);box-shadow:0 20px 50px rgba(0,0,0,.35)}
-.hd dialog::backdrop{background:rgba(15,23,42,.6)}
-.hd .dlg{padding:18px}
-.hd .dlg h2{margin:0 0 6px;font-size:1.1rem;color:#9f1239}
-.hd .dlg ul{margin:6px 0 12px;padding-left:18px;font-size:.88rem;color:#334155;max-height:140px;overflow:auto}
-.hd .dlg .acts{display:flex;gap:10px}
-.hd .dlg .acts .btn{flex:1}
-@media (max-width:900px){.hd{--bar:68px}}
+.hdx{box-sizing:border-box;width:100%;max-width:760px;margin:0 auto;padding:12px;min-width:0;--bar:0px}
+.hdx *{box-sizing:border-box;min-width:0}
+.hdx h1{font-size:1.3rem;margin:4px 0 4px;color:#0f172a}
+.hdx .sub{color:#64748b;font-size:.9rem;margin:0 0 12px;line-height:1.45}
+.hdx .warn{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;border-radius:12px;padding:10px 12px;font-size:.88rem;margin-bottom:12px;line-height:1.45}
+.hdx .ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:12px;padding:10px 12px;font-size:.9rem;margin-bottom:12px}
+.hdx .box{background:#fff;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:14px;overflow:hidden}
+.hdx .box-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;background:#0f172a;color:#fff;font-weight:600}
+.hdx .box-h label{font-weight:400;font-size:.85rem;display:flex;gap:8px;align-items:center;cursor:pointer;white-space:nowrap}
+.hdx .row{display:flex;align-items:center;gap:10px;padding:0 14px 0 0;border-top:1px solid #f1f5f9}
+.hdx .row label.pick{display:flex;align-items:center;gap:12px;flex:1;padding:14px 0 14px 14px;cursor:pointer}
+.hdx .row:has(.cek:checked){background:#fff1f2}
+.hdx .nm{flex:1;line-height:1.3}
+.hdx .n{background:#e2e8f0;color:#334155;border-radius:999px;padding:2px 10px;font-size:.78rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hdx .n.zero{opacity:.5}
+.hdx a.lnk{color:#0f766e;font-size:.85rem;white-space:nowrap;text-decoration:none;padding:10px 4px;font-weight:600}
+.hdx input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:#e11d48}
+.hdx .bar{position:sticky;bottom:var(--bar);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:10px 12px;box-shadow:0 -4px 18px rgba(15,23,42,.12)}
+.hdx .bar b{color:#e11d48;font-size:1.1rem}
+.hdx .btn{border:0;border-radius:10px;padding:12px 16px;font-size:.95rem;font-weight:600;cursor:pointer}
+.hdx .btn-del{background:#e11d48;color:#fff}
+.hdx .btn-del:disabled{opacity:.4;cursor:not-allowed}
+.hdx .btn-x{background:#e2e8f0;color:#334155}
+.hdx .lbl{display:block;font-size:.85rem;color:#334155;margin:0 0 4px}
+.hdx .inp{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;margin-bottom:10px;background:#fff}
+.hdx dialog{border:0;border-radius:16px;padding:0;width:min(92vw,420px);box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.hdx dialog::backdrop{background:rgba(15,23,42,.6)}
+.hdx .dlg{padding:18px}
+.hdx .dlg h2{margin:0 0 6px;font-size:1.1rem;color:#9f1239}
+.hdx .dlg ul{margin:6px 0 12px;padding-left:18px;font-size:.88rem;color:#334155;max-height:140px;overflow:auto}
+.hdx .dlg .acts{display:flex;gap:10px}
+.hdx .dlg .acts .btn{flex:1}
+@media (max-width:900px){.hdx{--bar:68px}}
 </style>
 
-<div class="hd">
+<div class="hdx">
     <h1>Hapus Data</h1>
     <p class="sub">Menghapus data transaksi hasil input kasir dan pengawas. Data induk (produk, pelanggan, pegawai, pemasok, pengaturan) tidak ikut terhapus.</p>
 

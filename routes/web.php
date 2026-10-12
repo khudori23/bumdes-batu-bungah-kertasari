@@ -235,3 +235,12 @@ Route::middleware(['auth'])->prefix('hapus-data')->name('hapus-data.')->group(fu
     Route::get('/{tabel}', [\App\Http\Controllers\HapusDataController::class, 'show'])->name('show');
     Route::delete('/{tabel}/baris', [\App\Http\Controllers\HapusDataController::class, 'destroyRows'])->name('baris');
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::delete('mortalitas/{id}/hapus', [\App\Http\Controllers\HapusCatatanKandangController::class, 'mortalitas'])->name('mortalitas.hapus');
+    Route::delete('opname-ayam/{id}/hapus', [\App\Http\Controllers\HapusCatatanKandangController::class, 'opname'])->name('opnameayam.hapus');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::delete('pembelian/{id}/hapus', [\App\Http\Controllers\HapusCatatanKandangController::class, 'pembelian'])->name('pembelian.hapus');
+});

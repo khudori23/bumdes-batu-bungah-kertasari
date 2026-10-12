@@ -46,3 +46,5 @@ kode-ayam-ecer.txt
 *.bak*
 database/seeders/Untitled-1.txt
 *.dump
+
+*.bak-role*

@@ -48,7 +48,7 @@
                 <tr>
                     <th>Tanggal</th>
                     <th class="right">Sistem (ekor)</th><th class="right">Fisik (ekor)</th><th class="right">Selisih</th>
-                    <th class="right">Selisih (kg)</th><th>Alasan</th><th>Oleh</th>
+                    <th class="right">Selisih (kg)</th><th>Alasan</th><th>Oleh</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -63,9 +63,17 @@
                         <td class="right">{{ $o->diff_kg > 0 ? '+' : '' }}{{ number_format($o->diff_kg, 2, ',', '.') }}</td>
                         <td>{{ $o->reason ?: '-' }}</td>
                         <td>{{ $o->createdBy?->name }}</td>
+                        <td class="right">
+                            @if (auth()->user()->isAdmin() || (auth()->user()->roleName() === \App\Models\User::ROLE_PENGAWAS && (string) $o->created_by_id === (string) auth()->id() && $o->created_at?->isToday()))
+                                <form method="POST" action="{{ route('opnameayam.hapus', $o->id) }}" onsubmit="return confirm('Hapus opname ini? Hanya opname terakhir yang bisa dihapus.')" style="display:inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn" style="background:#e11d48;padding:.25rem .6rem">Hapus</button>
+                                </form>
+                            @endif
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="muted">Belum ada opname.</td></tr>
+                    <tr><td colspan="8" class="muted">Belum ada opname.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -109,7 +117,7 @@
     <h3 style="margin-top:0">Riwayat ayam mati</h3>
     <div style="overflow-x:auto">
         <table>
-            <thead><tr><th>Tanggal</th><th class="right">Ekor</th><th class="right">Berat (kg)</th><th>Penyebab</th><th>Dicatat oleh</th></tr></thead>
+            <thead><tr><th>Tanggal</th><th class="right">Ekor</th><th class="right">Berat (kg)</th><th>Penyebab</th><th>Dicatat oleh</th><th></th></tr></thead>
             <tbody>
                 @forelse ($mati as $m)
                     <tr>
@@ -118,9 +126,17 @@
                         <td class="right">{{ number_format($m->weight_kg, 2, ',', '.') }}</td>
                         <td>{{ $m->cause ?: '-' }}@if ($m->notes)<div class="muted">{{ $m->notes }}</div>@endif</td>
                         <td>{{ $m->createdBy?->name }}</td>
+                        <td class="right">
+                            @if (auth()->user()->isAdmin() || (auth()->user()->roleName() === \App\Models\User::ROLE_PENGAWAS && (string) $m->created_by_id === (string) auth()->id() && $m->created_at?->isToday()))
+                                <form method="POST" action="{{ route('mortalitas.hapus', $m->id) }}" onsubmit="return confirm('Hapus catatan ayam mati ini?')" style="display:inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn" style="background:#e11d48;padding:.25rem .6rem">Hapus</button>
+                                </form>
+                            @endif
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="muted">Belum ada data ayam mati.</td></tr>
+                    <tr><td colspan="6" class="muted">Belum ada data ayam mati.</td></tr>
                 @endforelse
             </tbody>
         </table>
